@@ -21,6 +21,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late ArrowPuzzleGame _game;
+  late LevelData _currentLevelData;
   int _moveCount = 0;
   bool _showClearOverlay = false;
   int _stars = 0;
@@ -30,6 +31,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _currentLevelData = widget.levelData;
     _clearAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -43,7 +45,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _initGame() {
     _game = ArrowPuzzleGame(
-      levelData: widget.levelData,
+      levelData: _currentLevelData,
       onMoveCountChanged: () {
         setState(() {
           _moveCount = _game.gameState.moveCount;
@@ -52,7 +54,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       onLevelComplete: () {
         final stars = _game.gameState.calculateStars();
         // 클리어 처리 추가
-        ScoreManager().recordLevelClear(widget.levelData.id, stars);
+        ScoreManager().recordLevelClear(_currentLevelData.id, stars);
         setState(() {
           _showClearOverlay = true;
           _stars = stars;
@@ -157,20 +159,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
   void _nextLevel() {
     final currentIndex =
-        allLevels.indexWhere((l) => l.id == widget.levelData.id);
+        allLevels.indexWhere((l) => l.id == _currentLevelData.id);
         
     void proceedToNextLevel() {
       if (currentIndex < allLevels.length - 1) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) =>
-                GameScreen(levelData: allLevels[currentIndex + 1]),
-            transitionsBuilder: (_, anim, __, child) {
-              return FadeTransition(opacity: anim, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 300),
-          ),
-        );
+        setState(() {
+          _currentLevelData = allLevels[currentIndex + 1];
+          _showClearOverlay = false;
+          _moveCount = 0;
+          _stars = 0;
+        });
+        _game.loadNewLevel(_currentLevelData);
       } else {
         Navigator.of(context).pop();
       }
@@ -254,7 +253,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               ),
             ),
             child: Text(
-              'Level ${widget.levelData.id}',
+              'Level ${_currentLevelData.id}',
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -278,13 +277,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: _moveCount <= widget.levelData.arrows.length
+                    color: _moveCount <= _currentLevelData.arrows.length
                         ? AppColors.neonGreen
                         : AppColors.neonOrange,
                   ),
                 ),
                 Text(
-                  ' / ${widget.levelData.arrows.length}',
+                  ' / ${_currentLevelData.arrows.length}',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppColors.textMuted,
@@ -430,7 +429,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Moves: $_moveCount / ${widget.levelData.arrows.length}',
+                      'Moves: $_moveCount / ${_currentLevelData.arrows.length}',
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         color: AppColors.textSecondary,

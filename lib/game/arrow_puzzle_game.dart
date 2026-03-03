@@ -14,7 +14,7 @@ import 'components/particle_effects.dart';
 
 /// Arrow Puzzle 메인 게임 클래스
 class ArrowPuzzleGame extends FlameGame {
-  final LevelData levelData;
+  LevelData levelData;
   late GameState gameState;
   late double cellSize;
   
@@ -160,9 +160,21 @@ class ArrowPuzzleGame extends FlameGame {
     }
   }
 
+  /// 새 레벨 로드 (엔진 재구동 없이 상태만 변경)
+  void loadNewLevel(LevelData newLevelData) {
+    levelData = newLevelData;
+    gameState = GameState(levelData: levelData);
+    _calculateCellSize();
+    _activeAnimations = 0;
+    removeAll(children);
+    _setupBoard();
+    onMoveCountChanged?.call();
+  }
+
   /// 레벨 리셋
   void resetLevel() {
     gameState.reset();
+    _activeAnimations = 0;
     removeAll(children);
     _setupBoard();
     onMoveCountChanged?.call();
