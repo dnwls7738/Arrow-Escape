@@ -1,4 +1,93 @@
-﻿import '../models/level_data.dart';
+﻿Running build hooks...Running build hooks...
+=== Chapter 1 ===
+Level 1: 3x3, 5 arrows, free=3(60%), par=5, empty=0
+Level 2: 3x3, 6 arrows, free=2(33%), par=6, empty=0
+Level 3: 3x3, 6 arrows, free=2(33%), par=6, empty=0
+Level 4: 3x3, 7 arrows, free=3(43%), par=7, empty=0
+Level 5: 3x3, 7 arrows, free=3(43%), par=7, empty=0
+Level 6: 3x3, 8 arrows, free=3(38%), par=8, empty=0
+Level 7: 3x3, 8 arrows, free=3(38%), par=8, empty=0
+Level 8: 4x4, 9 arrows, free=4(44%), par=9, empty=0
+Level 9: 4x4, 9 arrows, free=3(33%), par=9, empty=0
+Level 10: 4x4, 10 arrows, free=4(40%), par=10, empty=0
+Level 11: 4x4, 10 arrows, free=3(30%), par=10, empty=0
+Level 12: 4x4, 11 arrows, free=4(36%), par=11, empty=0
+Level 13: 4x4, 11 arrows, free=4(36%), par=11, empty=0
+Level 14: 4x4, 12 arrows, free=4(33%), par=12, empty=0
+Level 15: 4x4, 12 arrows, free=4(33%), par=12, empty=0
+
+=== Chapter 2 ===
+Level 16: 4x4, 10 arrows, free=3(30%), par=10, empty=0
+Level 17: 4x4, 11 arrows, free=3(27%), par=11, empty=0
+Level 18: 4x4, 11 arrows, free=2(18%), par=11, empty=0
+Level 19: 4x4, 12 arrows, free=2(17%), par=12, empty=1
+Level 20: 4x4, 13 arrows, free=3(23%), par=13, empty=1
+Level 21: 4x4, 14 arrows, free=3(21%), par=14, empty=1
+Level 22: 4x4, 14 arrows, free=3(21%), par=14, empty=1
+Level 23: 5x5, 15 arrows, free=3(20%), par=15, empty=2
+Level 24: 5x5, 16 arrows, free=3(19%), par=16, empty=2
+Level 25: 5x5, 16 arrows, free=3(19%), par=16, empty=2
+Level 26: 5x5, 17 arrows, free=4(24%), par=17, empty=2
+Level 27: 5x5, 18 arrows, free=3(17%), par=18, empty=2
+Level 28: 5x5, 19 arrows, free=3(16%), par=19, empty=3
+Level 29: 5x5, 19 arrows, free=3(16%), par=19, empty=3
+Level 30: 5x5, 20 arrows, free=3(15%), par=20, empty=3
+
+=== Chapter 3 ===
+Level 31: 5x5, 14 arrows, free=3(21%), par=14, empty=2
+Level 32: 5x5, 15 arrows, free=2(13%), par=15, empty=3
+Level 33: 5x5, 16 arrows, free=3(19%), par=16, empty=3
+Level 34: 5x5, 17 arrows, free=2(12%), par=17, empty=4
+Level 35: 6x6, 19 arrows, free=2(11%), par=19, empty=4
+Level 36: 6x6, 20 arrows, free=2(10%), par=20, empty=5
+Level 37: 6x6, 21 arrows, free=3(14%), par=21, empty=5
+Level 38: 6x6, 22 arrows, free=4(18%), par=22, empty=6
+Level 39: 6x6, 23 arrows, free=3(13%), par=23, empty=7
+Level 40: 6x6, 24 arrows, free=3(13%), par=24, empty=7
+Level 41: 6x6, 25 arrows, free=4(16%), par=25, empty=8
+Level 42: 7x7, 27 arrows, free=4(15%), par=27, empty=8
+Level 43: 7x7, 28 arrows, free=3(11%), par=28, empty=9
+Level 44: 7x7, 29 arrows, free=3(10%), par=29, empty=9
+Level 45: 7x7, 30 arrows, free=3(10%), par=30, empty=10
+
+=== Chapter 4 ===
+Level 46: 7x7, 20 arrows, free=3(15%), par=20, empty=5
+Level 47: 7x7, 22 arrows, free=2(9%), par=22, empty=7
+Level 48: 7x7, 24 arrows, free=2(8%), par=24, empty=9
+Level 49: 8x8, 25 arrows, free=2(8%), par=25, empty=10
+Level 50: 8x8, 27 arrows, free=4(15%), par=27, empty=12
+Level 51: 8x8, 29 arrows, free=3(10%), par=29, empty=14
+Level 52: 8x8, 31 arrows, free=3(10%), par=31, empty=16
+Level 53: 9x9, 33 arrows, free=3(9%), par=33, empty=18
+Level 54: 9x9, 34 arrows, free=3(9%), par=34, empty=19
+Level 55: 9x9, 36 arrows, free=3(8%), par=36, empty=21
+Level 56: 9x9, 38 arrows, free=4(11%), par=38, empty=23
+Level 57: 9x9, 40 arrows, free=4(10%), par=40, empty=25
+Level 58: 10x10, 41 arrows, free=5(12%), par=41, empty=26
+Level 59: 10x10, 43 arrows, free=5(12%), par=43, empty=28
+Level 60: 10x10, 45 arrows, free=5(11%), par=45, empty=30
+
+=== Chapter 5 ===
+Level 61: 10x10, 30 arrows, free=4(13%), par=30, empty=15
+Level 62: 10x10, 33 arrows, free=3(9%), par=33, empty=20
+Level 63: 11x11, 36 arrows, free=4(11%), par=36, empty=24
+Level 64: 11x11, 39 arrows, free=2(5%), par=39, empty=29
+Level 65: 11x11, 41 arrows, free=3(7%), par=41, empty=34
+Level 66: 12x12, 44 arrows, free=3(7%), par=44, empty=38
+Level 67: 12x12, 47 arrows, free=4(9%), par=47, empty=43
+Level 68: 13x13, 50 arrows, free=4(8%), par=50, empty=48
+Level 69: 13x13, 53 arrows, free=3(6%), par=53, empty=52
+Level 70: 13x13, 56 arrows, free=3(5%), par=56, empty=57
+Level 71: 14x14, 59 arrows, free=4(7%), par=59, empty=61
+Level 72: 14x14, 61 arrows, free=4(7%), par=61, empty=66
+Level 73: 14x14, 64 arrows, free=4(6%), par=64, empty=71
+Level 74: 15x15, 67 arrows, free=4(6%), par=67, empty=75
+Level 75: 15x15, 70 arrows, free=5(7%), par=70, empty=80
+
+
+// ===== GENERATED levels.dart =====
+
+import '../models/level_data.dart';
 import '../core/constants.dart';
 
 /// Chapter 1

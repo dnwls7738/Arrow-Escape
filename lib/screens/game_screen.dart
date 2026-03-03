@@ -212,7 +212,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(16),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: GameWidget(game: _game),
+                        child: InteractiveViewer(
+                          minScale: 0.8,
+                          maxScale: 3.0,
+                          panEnabled: true,
+                          scaleEnabled: _currentLevelData.rows > 5 || _currentLevelData.cols > 5,
+                          child: GameWidget(game: _game),
+                        ),
                       ),
                     ),
                   ),
