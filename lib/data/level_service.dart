@@ -212,6 +212,10 @@ class LevelService extends ChangeNotifier {
       grouped[level.chapter]!.add(level);
     }
     final sortedKeys = grouped.keys.toList()..sort();
+    // 각 챕터 내에서 레벨 ID 순으로 정렬
+    for (final key in sortedKeys) {
+      grouped[key]!.sort((a, b) => a.id.compareTo(b.id));
+    }
     return sortedKeys.map((k) => grouped[k]!).toList();
   }
 }
