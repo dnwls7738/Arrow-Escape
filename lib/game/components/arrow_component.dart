@@ -14,10 +14,14 @@ class ArrowComponent extends PositionComponent with TapCallbacks {
   final Color _color;
   
   bool _isRemoving = false;
+  bool get isRemoving => _isRemoving;
+
   double _glowIntensity = 0.0;
   double _glowDirection = 1.0;
   double _shakeOffset = 0.0;
   bool _isShaking = false;
+  bool get isShaking => _isShaking;
+
   double _shakeTime = 0.0;
   double _opacity = 1.0;
 

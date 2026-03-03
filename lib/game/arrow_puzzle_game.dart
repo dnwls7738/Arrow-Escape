@@ -23,7 +23,7 @@ class ArrowPuzzleGame extends FlameGame {
   final VoidCallback? onLevelComplete;
 
   final Map<String, ArrowComponent> _arrowComponents = {};
-  bool _isAnimating = false;
+  int _activeAnimations = 0;
 
   ArrowPuzzleGame({
     required this.levelData,
@@ -107,42 +107,41 @@ class ArrowPuzzleGame extends FlameGame {
   }
 
   void _onArrowTapped(ArrowData arrowData) {
-    if (_isAnimating) return;
-
     final key = '${arrowData.row}_${arrowData.col}';
     final component = _arrowComponents[key];
-    if (component == null) return;
+    if (component == null || component.isRemoving) return;
 
     if (gameState.canShoot(arrowData)) {
-      _isAnimating = true;
+      // 즉시 논리적 상태 업데이트 (다중 터치 허용)
+      gameState.shoot(arrowData);
+      _arrowComponents.remove(key);
       
-      component.playShootAnimation(() {
-        gameState.shoot(arrowData);
-        _arrowComponents.remove(key);
-        _isAnimating = false;
-        AudioManager().playShoot();
-        HapticManager().medium();
-        
-        // 발사 트레일 이펙트
-        final (dr, dc) = arrowData.direction.delta;
-        final boardWidth = levelData.cols * cellSize;
-        final boardHeight = levelData.rows * cellSize;
-        final offsetX = (size.x - boardWidth) / 2;
-        final offsetY = (size.y - boardHeight) / 2;
-        final arrowCenterX = offsetX + arrowData.col * cellSize + cellSize / 2;
-        final arrowCenterY = offsetY + arrowData.row * cellSize + cellSize / 2;
-        add(ShootTrail(
-          startX: arrowCenterX,
-          startY: arrowCenterY,
-          dirX: dc.toDouble(),
-          dirY: dr.toDouble(),
-          color: AppColors.colorForDirection(arrowData.direction),
-          cellSize: cellSize,
-        ));
-        
-        onMoveCountChanged?.call();
+      AudioManager().playShoot();
+      HapticManager().medium();
+      onMoveCountChanged?.call();
 
-        if (gameState.isCompleted) {
+      // 발사 트레일 이펙트
+      final (dr, dc) = arrowData.direction.delta;
+      final boardWidth = levelData.cols * cellSize;
+      final boardHeight = levelData.rows * cellSize;
+      final offsetX = (size.x - boardWidth) / 2;
+      final offsetY = (size.y - boardHeight) / 2;
+      final arrowCenterX = offsetX + arrowData.col * cellSize + cellSize / 2;
+      final arrowCenterY = offsetY + arrowData.row * cellSize + cellSize / 2;
+      add(ShootTrail(
+        startX: arrowCenterX,
+        startY: arrowCenterY,
+        dirX: dc.toDouble(),
+        dirY: dr.toDouble(),
+        color: AppColors.colorForDirection(arrowData.direction),
+        cellSize: cellSize,
+      ));
+
+      _activeAnimations++;
+      component.playShootAnimation(() {
+        _activeAnimations--;
+
+        if (gameState.isCompleted && _activeAnimations == 0) {
           AudioManager().playClear();
           HapticManager().success();
           // 축하 파티클 폭발!
@@ -151,17 +150,13 @@ class ArrowPuzzleGame extends FlameGame {
         }
       });
     } else {
-      _isAnimating = true;
+      if (component.isShaking) return;
+
       component.playBlockedAnimation();
       gameState.recordWrongMove();
       AudioManager().playBlocked();
       HapticManager().heavy();
       onMoveCountChanged?.call();
-      
-      // 흔들리기(약 0.3초) 동안 추가 입력 방지
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _isAnimating = false;
-      });
     }
   }
 
