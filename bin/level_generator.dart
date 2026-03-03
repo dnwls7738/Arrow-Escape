@@ -1,6 +1,5 @@
 import 'dart:math';
 
-/// Arrow direction enum
 enum Dir { up, right, down, left }
 
 extension DirDelta on Dir {
@@ -28,42 +27,44 @@ class Arrow {
   Arrow(this.row, this.col, this.dir);
 }
 
-bool _isBlocked(List<Arrow> arrows, Arrow a, int rows, int cols) {
+bool _canShoot(List<Arrow> arrows, Arrow a, int rows, int cols) {
   final (dr, dc) = a.dir.delta;
   int r = a.row + dr, c = a.col + dc;
   while (r >= 0 && r < rows && c >= 0 && c < cols) {
     for (final o in arrows) {
-      if (o.row == r && o.col == c) return true;
+      if (o.row == r && o.col == c) return true; // blocked
     }
     r += dr;
     c += dc;
   }
-  return false;
+  return false; // path is clear = can shoot
 }
 
-bool _canShoot(List<Arrow> arrows, Arrow a, int rows, int cols) =>
-    !_isBlocked(arrows, a, rows, cols);
+bool canShoot(List<Arrow> arrows, Arrow a, int rows, int cols) {
+  return !_canShoot(arrows, a, rows, cols);
+}
 
-int _countFree(List<Arrow> arrows, int rows, int cols) {
+int countFree(List<Arrow> arrows, int rows, int cols) {
   int n = 0;
-  for (final a in arrows) {
-    if (_canShoot(arrows, a, rows, cols)) n++;
-  }
+  for (final a in arrows) if (canShoot(arrows, a, rows, cols)) n++;
   return n;
 }
 
-/// ===== CONSTRUCTIVE GENERATION =====
-/// Build a puzzle that is GUARANTEED solvable:
+/// ===== REVERSE PLACEMENT GENERATOR =====
+/// 
+/// Guaranteed solvable by construction:
+/// 1. Start with empty board
+/// 2. Place arrows one at a time, each NEW arrow must be in FREE state
+///    (its path to the edge is clear of ALL previously placed arrows)
+/// 3. Previously placed arrows may become blocked by the new arrow
+/// 4. The solve order = REVERSE of placement order
+///    (last placed arrow is shot first, because it was free when placed
+///     and no arrows placed after it can block it — there are none)
 ///
-/// 1. Pick all cell positions and shuffle them — this is the solve-order.
-/// 2. Process in REVERSE order (last-to-shoot placed first).
-/// 3. For each cell, pick a direction such that *at least one* of the
-///    previously-placed arrows sits in its firing path → this arrow will be
-///    "blocked" until those later arrows are removed.
-/// 4. The very LAST arrow placed (first to shoot) must be free (path clear).
-///
-/// Because we enforce "the path is blocked only by arrows that will be
-/// removed later", the original order is always a valid solution.
+/// Difficulty is controlled by:
+/// - Grid size 
+/// - Number of arrows
+/// - Direction choices (prefer directions that block existing arrows)
 
 class LevelResult {
   final int id, chapter, rows, cols, par;
@@ -90,12 +91,10 @@ LevelResult? generateLevel({
   required double maxFreeRatio,
   required int emptyCount,
   required Random rng,
-  int maxAttempts = 800,
+  int maxAttempts = 1000,
 }) {
-  final allDirs = Dir.values;
-
   for (int attempt = 0; attempt < maxAttempts; attempt++) {
-    // --- 1.  Generate empty cells ---
+    // Generate empty cells
     final totalCells = rows * cols;
     final maxEmpty = (totalCells - targetArrows).clamp(0, totalCells - 1);
     final actualEmpty = emptyCount.clamp(0, maxEmpty);
@@ -104,7 +103,7 @@ LevelResult? generateLevel({
       emptyCells.add('${rng.nextInt(rows)}_${rng.nextInt(cols)}');
     }
 
-    // Build available-cell list
+    // Available cells
     final available = <(int, int)>[];
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
@@ -112,76 +111,77 @@ LevelResult? generateLevel({
       }
     }
     if (available.length < targetArrows) continue;
-
-    // --- 2.  Define solve-order (shuffled) ---
     available.shuffle(rng);
-    final solveOrder = available.sublist(0, targetArrows);
-    // solveOrder[0] will be shot first, solveOrder[last] shot last.
 
-    // --- 3.  Place arrows in REVERSE order ---
-    // placed list grows from back of solveOrder to front.
-    final arrows = <Arrow>[];
+    // Place arrows one by one — each new arrow must be FREE
+    final placed = <Arrow>[]; // placement order
     bool failed = false;
 
-    for (int i = targetArrows - 1; i >= 0; i--) {
-      final (r, c) = solveOrder[i];
+    for (int i = 0; i < targetArrows; i++) {
+      final (r, c) = available[i];
 
-      if (i == 0) {
-        // First arrow to be shot — MUST be free (not blocked).
-        // Pick a direction whose path is clear of all placed arrows.
-        final freeDirs = <Dir>[];
-        for (final d in allDirs) {
-          final test = Arrow(r, c, d);
-          if (_canShoot(arrows, test, rows, cols)) freeDirs.add(d);
-        }
-        if (freeDirs.isEmpty) { failed = true; break; }
-        final dir = freeDirs[rng.nextInt(freeDirs.length)];
-        arrows.add(Arrow(r, c, dir));
-      } else {
-        // This arrow should be blocked by at least one already-placed arrow
-        // (which will be removed later in solve-order, unblocking this one).
-        //
-        // Prefer directions where a placed arrow sits in the firing path.
-        final blockedDirs = <Dir>[];
-        final freeDirs = <Dir>[];
-        for (final d in allDirs) {
-          final test = Arrow(r, c, d);
-          if (_isBlocked([...arrows], test, rows, cols)) {
-            blockedDirs.add(d);
-          } else {
-            freeDirs.add(d);
+      // Find directions where this arrow would be FREE (path clear to edge)
+      final freeDirs = <Dir>[];
+      // Find directions where this arrow would BLOCK at least one existing arrow
+      // (makes the puzzle harder = more interesting)
+      final blockingFreeDirs = <Dir>[];
+
+      for (final d in Dir.values) {
+        final testArrow = Arrow(r, c, d);
+        if (canShoot(placed, testArrow, rows, cols)) {
+          freeDirs.add(d);
+
+          // Check if placing this arrow blocks any existing free arrows
+          bool blocksExisting = false;
+          for (final existing in placed) {
+            // Does this new arrow sit in the firing path of any existing arrow?
+            final (edr, edc) = existing.dir.delta;
+            int er = existing.row + edr, ec = existing.col + edc;
+            while (er >= 0 && er < rows && ec >= 0 && ec < cols) {
+              if (er == r && ec == c) {
+                blocksExisting = true;
+                break;
+              }
+              er += edr;
+              ec += edc;
+            }
+            if (blocksExisting) break;
           }
+          if (blocksExisting) blockingFreeDirs.add(d);
         }
-
-        Dir dir;
-        if (blockedDirs.isNotEmpty) {
-          dir = blockedDirs[rng.nextInt(blockedDirs.length)];
-        } else if (freeDirs.isNotEmpty) {
-          // No blocking possible — pick free but it increases free ratio
-          dir = freeDirs[rng.nextInt(freeDirs.length)];
-        } else {
-          failed = true; break;
-        }
-        arrows.add(Arrow(r, c, dir));
       }
+
+      if (freeDirs.isEmpty) {
+        // Can't place a free arrow here, skip this cell
+        failed = true;
+        break;
+      }
+
+      Dir chosenDir;
+      if (blockingFreeDirs.isNotEmpty && rng.nextDouble() < 0.75) {
+        // 75% chance to pick a blocking direction → harder puzzles
+        chosenDir = blockingFreeDirs[rng.nextInt(blockingFreeDirs.length)];
+      } else {
+        chosenDir = freeDirs[rng.nextInt(freeDirs.length)];
+      }
+
+      placed.add(Arrow(r, c, chosenDir));
     }
 
-    if (failed) continue;
+    if (failed || placed.length < targetArrows) continue;
 
-    // --- 4.  Evaluate ---
-    final freeCount = _countFree(arrows, rows, cols);
+    // The final puzzle arrows = all placed arrows
+    // Solve order = reverse of placement order
+    final arrows = placed;
+    final freeCount = countFree(arrows, rows, cols);
     final freeRatio = freeCount / arrows.length;
 
     if (freeRatio < minFreeRatio || freeRatio > maxFreeRatio) continue;
     if (freeCount == 0) continue;
 
-    // par = number of arrows (constructive guarantees solve in exactly N moves)
-    // For small levels, we could compute optimal, but constructive order IS optimal.
-    final par = arrows.length;
-
     return LevelResult(
       id: id, chapter: chapter, rows: rows, cols: cols,
-      arrows: arrows, par: par,
+      arrows: arrows, par: arrows.length,
       emptyCells: emptyCells.toList()..sort(),
       freeCount: freeCount, freeRatio: freeRatio,
     );
@@ -189,7 +189,6 @@ LevelResult? generateLevel({
   return null;
 }
 
-/// Fallback: guaranteed solvable (edge arrows)
 LevelResult fallback(int id, int ch, int rows, int cols, int n, Random rng) {
   final cells = <(int, int, Dir)>[];
   for (int c = 0; c < cols; c++) {
@@ -200,7 +199,6 @@ LevelResult fallback(int id, int ch, int rows, int cols, int n, Random rng) {
     cells.add((r, 0, Dir.left));
     cells.add((r, cols - 1, Dir.right));
   }
-  // Add interior pointing outward
   for (int r = 1; r < rows - 1; r++) {
     for (int c = 1; c < cols - 1; c++) {
       cells.add((r, c, Dir.values[rng.nextInt(4)]));
@@ -248,11 +246,11 @@ String toDart(LevelResult l) {
 void main() {
   final rng = Random(42);
   final specs = [
-    _S(1, 3,4, 3,4, 5,12, 0.30,0.70, 0,0, 15),
-    _S(2, 4,5, 4,5, 10,20, 0.15,0.45, 0,3, 15),
-    _S(3, 5,7, 5,7, 14,30, 0.10,0.35, 2,10, 15),
-    _S(4, 7,10, 7,10, 20,45, 0.08,0.25, 5,30, 15),
-    _S(5, 10,15, 10,15, 30,70, 0.05,0.20, 15,80, 15),
+    _S(1, 3,4, 3,4, 5,12, 0.25,0.70, 0,0, 15),
+    _S(2, 4,5, 4,5, 10,20, 0.12,0.45, 0,3, 15),
+    _S(3, 5,7, 5,7, 14,30, 0.08,0.35, 2,10, 15),
+    _S(4, 7,10, 7,10, 20,45, 0.06,0.25, 5,30, 15),
+    _S(5, 10,15, 10,15, 30,70, 0.04,0.20, 15,80, 15),
   ];
 
   int levelId = 1;
@@ -271,7 +269,7 @@ void main() {
       final emp = s.e1 + ((s.e2 - s.e1) * p).round();
 
       LevelResult? level;
-      for (int retry = 0; retry < 15 && level == null; retry++) {
+      for (int retry = 0; retry < 20 && level == null; retry++) {
         level = generateLevel(
           id: levelId, chapter: s.ch,
           rows: rows, cols: cols,
@@ -280,10 +278,13 @@ void main() {
           maxFreeRatio: maxF + retry * 0.05,
           emptyCount: emp,
           rng: rng,
-          maxAttempts: 500 + retry * 200,
+          maxAttempts: 800 + retry * 300,
         );
       }
-      level ??= fallback(levelId, s.ch, rows, cols, tgt, rng);
+      if (level == null) {
+        print('  WARN: fallback for level $levelId');
+        level = fallback(levelId, s.ch, rows, cols, tgt, rng);
+      }
       
       out[s.ch]!.add(toDart(level));
       print('Level ${level.id}: ${level.rows}x${level.cols}, '
@@ -294,12 +295,10 @@ void main() {
     }
   }
 
-  // Output levels.dart
   print('\n\n// ===== GENERATED levels.dart =====\n');
   print("import '../models/level_data.dart';");
   print("import '../core/constants.dart';");
   print('');
-
   for (int ch = 1; ch <= 5; ch++) {
     print('/// Chapter $ch');
     print('final List<LevelData> chapter${ch}Levels = [');
