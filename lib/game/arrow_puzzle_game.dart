@@ -59,9 +59,17 @@ class ArrowPuzzleGame extends FlameGame {
   void _calculateCellSize() {
     final availableWidth = size.x - AppSizes.gridPadding * 2;
     final availableHeight = size.y - AppSizes.gridPadding * 2;
-    cellSize = (availableWidth / levelData.cols)
+    // Calculate size to fit screen
+    double fitSize = (availableWidth / levelData.cols)
         .clamp(0, availableHeight / levelData.rows)
         .toDouble();
+    
+    // For large grids, enforce a minimum cell size so they don't become microscopic
+    // InteractiveViewer will handle the scrolling/panning
+    const double minCellSize = 40.0;
+    cellSize = fitSize < minCellSize && (levelData.rows > 5 || levelData.cols > 5) 
+        ? minCellSize 
+        : fitSize;
   }
 
   void _setupBoard() {

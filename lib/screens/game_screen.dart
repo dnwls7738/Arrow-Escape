@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -213,11 +214,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: InteractiveViewer(
-                          minScale: 0.8,
+                          minScale: 0.5,
                           maxScale: 3.0,
                           panEnabled: true,
                           scaleEnabled: _currentLevelData.rows > 5 || _currentLevelData.cols > 5,
-                          child: GameWidget(game: _game),
+                          constrained: false, // 중요한 속성: 자식이 부모 크기를 넘어설 수 있게 함
+                          // 명시적인 크기에 minCellSize 기반의 최대 크기 확보
+                          child: SizedBox(
+                            width: math.max(MediaQuery.of(context).size.width, _currentLevelData.cols * 40.0 + 32),
+                            height: math.max(MediaQuery.of(context).size.height, _currentLevelData.rows * 40.0 + 32),
+                            child: GameWidget(game: _game),
+                          ),
                         ),
                       ),
                     ),
