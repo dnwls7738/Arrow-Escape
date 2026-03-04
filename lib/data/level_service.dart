@@ -32,38 +32,12 @@ class LevelService extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // ① 캐시에서 즉시 로드 (빠름)
-    final cached = await _loadFromCache();
-    if (cached) {
-      _isLoaded = true;
-      _isLoading = false;
-      Logger.log('✅ Levels loaded from cache (${allLevels.length} levels)');
-      notifyListeners();
-      // 백그라운드에서 Firestore 갱신
-      _refreshFromFirestore();
-      return;
-    }
-
-    // ② Firestore에서 로드 (10초 타임아웃)
-    try {
-      final loaded = await _loadFromFirestore()
-          .timeout(const Duration(seconds: 10));
-      if (loaded) {
-        _isLoaded = true;
-        _isLoading = false;
-        Logger.log('✅ Levels loaded from Firestore (${allLevels.length} levels)');
-        notifyListeners();
-        return;
-      }
-    } catch (e) {
-      Logger.log('⚠️ Firestore level loading failed: $e');
-    }
-
-    // ③ 폴백: 로컬 levels.dart 사용
+    // TEMP: 로컬 levels.dart의 새 데이터를 강제로 불러오기 위해 캐시 및 Firestore 비활성화
+    // TODO: 프로덕션에서는 버전 관리를 통해 캐시 무효화를 구현해야 함
     _loadFromLocal();
     _isLoaded = true;
     _isLoading = false;
-    Logger.log('ℹ️ Levels loaded from local fallback');
+    Logger.log('ℹ️ Levels FORCED loaded from local fallback (new 15x15 data)');
     notifyListeners();
   }
 
