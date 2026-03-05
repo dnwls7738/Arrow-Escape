@@ -34,6 +34,9 @@ class LevelService extends ChangeNotifier {
 
     // TEMP: 로컬 levels.dart의 새 데이터를 강제로 불러오기 위해 캐시 및 Firestore 비활성화
     // TODO: 프로덕션에서는 버전 관리를 통해 캐시 무효화를 구현해야 함
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_cacheKey); // FORCE CLEAR CACHE
+    
     _loadFromLocal();
     _isLoaded = true;
     _isLoading = false;
@@ -143,21 +146,26 @@ class LevelService extends ChangeNotifier {
   /// Map → LevelData 변환
   LevelData? _mapToLevelData(Map<String, dynamic> data) {
     try {
-      final arrows = (data['arrows'] as List).map((a) {
-        final aMap = Map<String, dynamic>.from(a);
-        return ArrowData(
-          row: aMap['row'] as int,
-          col: aMap['col'] as int,
-          direction: _parseDirection(aMap['direction'] as String),
+      final paths = (data['paths'] as List?)?.map((p) {
+        final pMap = Map<String, dynamic>.from(p);
+        final segments = (pMap['segments'] as List).map((s) {
+          final sMap = Map<String, dynamic>.from(s);
+          return Coordinate(row: sMap['row'] as int, col: sMap['col'] as int);
+        }).toList();
+        
+        return PathData(
+          id: pMap['id'] as int,
+          colorIndex: pMap['colorIndex'] as int? ?? 0,
+          segments: segments,
         );
-      }).toList();
+      }).toList() ?? [];
 
       return LevelData(
         id: data['id'] as int,
         chapter: data['chapter'] as int,
         rows: data['rows'] as int,
         cols: data['cols'] as int,
-        arrows: arrows,
+        paths: paths,
         par: data['par'] as int,
         emptyCells: data['emptyCells'] != null
             ? List<String>.from(data['emptyCells'])
@@ -166,16 +174,6 @@ class LevelService extends ChangeNotifier {
     } catch (e) {
       Logger.log('Error parsing level ${data['id']}: $e');
       return null;
-    }
-  }
-
-  ArrowDirection _parseDirection(String dir) {
-    switch (dir) {
-      case 'up': return ArrowDirection.up;
-      case 'down': return ArrowDirection.down;
-      case 'left': return ArrowDirection.left;
-      case 'right': return ArrowDirection.right;
-      default: return ArrowDirection.up;
     }
   }
 

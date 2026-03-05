@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import '../models/level_data.dart';
 import 'game_state.dart';
-import 'components/arrow_component.dart';
+import 'components/path_component.dart';
 import 'components/grid_component.dart';
 import '../data/settings_manager.dart';
 import '../data/audio_manager.dart';
@@ -19,16 +19,18 @@ class ArrowPuzzleGame extends FlameGame {
   late double cellSize;
   
   // 콜백
-  final VoidCallback? onMoveCountChanged;
+  final VoidCallback? onHeartsChanged;
   final VoidCallback? onLevelComplete;
+  final VoidCallback? onGameOver;
 
-  final Map<String, ArrowComponent> _arrowComponents = {};
+  final Map<int, PathComponent> _pathComponents = {};
   int _activeAnimations = 0;
 
   ArrowPuzzleGame({
     required this.levelData,
-    this.onMoveCountChanged,
+    this.onHeartsChanged,
     this.onLevelComplete,
+    this.onGameOver,
   });
 
   @override
@@ -57,37 +59,38 @@ class ArrowPuzzleGame extends FlameGame {
   }
 
   void _calculateCellSize() {
-    final availableWidth = size.x - AppSizes.gridPadding * 2;
-    final availableHeight = size.y - AppSizes.gridPadding * 2;
-    // Calculate size to fit screen
-    double fitSize = (availableWidth / levelData.cols)
-        .clamp(0, availableHeight / levelData.rows)
-        .toDouble();
-    
-    // For large grids, enforce a minimum cell size so they don't become microscopic
-    // InteractiveViewer will handle the scrolling/panning
-    const double minCellSize = 40.0;
-    cellSize = fitSize < minCellSize && (levelData.rows > 5 || levelData.cols > 5) 
-        ? minCellSize 
-        : fitSize;
+    // 내부 고정 셀 크기 (물리적 비율 유지용)
+    cellSize = 20.0;
   }
 
   void _setupBoard() {
-    _arrowComponents.clear();
+    _pathComponents.clear();
 
-    // 보드 영역 계산 (중앙 배치)
+    // 내부 그리드 크기 (20px 기준)
     final boardWidth = levelData.cols * cellSize;
     final boardHeight = levelData.rows * cellSize;
-    final offsetX = (size.x - boardWidth) / 2;
-    final offsetY = (size.y - boardHeight) / 2;
+    
+    // 화면에 맞는 스케일 계산
+    final availableWidth = size.x - 32;
+    final availableHeight = size.y - 32;
+    final scaleX = availableWidth / boardWidth;
+    final scaleY = availableHeight / boardHeight;
+    final scale = scaleX < scaleY ? scaleX : scaleY;
+    
+    // 스케일 적용 후 중앙 배치
+    final scaledBoardWidth = boardWidth * scale;
+    final scaledBoardHeight = boardHeight * scale;
+    final offsetX = (size.x - scaledBoardWidth) / 2;
+    final offsetY = (size.y - scaledBoardHeight) / 2;
 
-    // 보드 컨테이너
+    // 보드 컨테이너 (스케일 적용)
     final boardContainer = PositionComponent(
       position: Vector2(offsetX, offsetY),
       size: Vector2(boardWidth, boardHeight),
+      scale: Vector2.all(scale),
     );
 
-    // 그리드 배경 (빈 칸은 그리지 않음)
+    // 그리드 배경
     boardContainer.add(GridComponent(
       rows: levelData.rows,
       cols: levelData.cols,
@@ -95,55 +98,31 @@ class ArrowPuzzleGame extends FlameGame {
       emptyCells: levelData.emptyCells,
     ));
 
-    // 화살표 배치
-    for (final arrowData in gameState.currentArrows) {
-      final key = '${arrowData.row}_${arrowData.col}';
-      
-      // 혹시라도 비어있는 공간으로 지정된 곳이면 화살표를 배치하지 않음 (안전 장치)
-      if (levelData.emptyCells.contains(key)) continue;
-
-      final component = ArrowComponent(
-        arrowData: arrowData,
+    // 선(뱀) 배치
+    for (final pathData in gameState.currentPaths) {
+      final component = PathComponent(
+        pathData: pathData,
         cellSize: cellSize,
-        onTap: () => _onArrowTapped(arrowData),
+        onTap: () => _onPathTapped(pathData),
       );
-      _arrowComponents[key] = component;
+
+      _pathComponents[pathData.id] = component;
       boardContainer.add(component);
     }
 
     add(boardContainer);
   }
 
-  void _onArrowTapped(ArrowData arrowData) {
-    final key = '${arrowData.row}_${arrowData.col}';
-    final component = _arrowComponents[key];
+  void _onPathTapped(PathData pathData) {
+    final component = _pathComponents[pathData.id];
     if (component == null || component.isRemoving) return;
 
-    if (gameState.canShoot(arrowData)) {
-      // 즉시 논리적 상태 업데이트 (다중 터치 허용)
-      gameState.shoot(arrowData);
-      _arrowComponents.remove(key);
-      
+    if (gameState.escape(pathData)) {
       AudioManager().playShoot();
       HapticManager().medium();
-      onMoveCountChanged?.call();
+      onHeartsChanged?.call();
 
-      // 발사 트레일 이펙트
-      final (dr, dc) = arrowData.direction.delta;
-      final boardWidth = levelData.cols * cellSize;
-      final boardHeight = levelData.rows * cellSize;
-      final offsetX = (size.x - boardWidth) / 2;
-      final offsetY = (size.y - boardHeight) / 2;
-      final arrowCenterX = offsetX + arrowData.col * cellSize + cellSize / 2;
-      final arrowCenterY = offsetY + arrowData.row * cellSize + cellSize / 2;
-      add(ShootTrail(
-        startX: arrowCenterX,
-        startY: arrowCenterY,
-        dirX: dc.toDouble(),
-        dirY: dr.toDouble(),
-        color: AppColors.colorForDirection(arrowData.direction),
-        cellSize: cellSize,
-      ));
+      _pathComponents.remove(pathData.id);
 
       _activeAnimations++;
       component.playShootAnimation(() {
@@ -152,7 +131,6 @@ class ArrowPuzzleGame extends FlameGame {
         if (gameState.isCompleted && _activeAnimations == 0) {
           AudioManager().playClear();
           HapticManager().success();
-          // 축하 파티클 폭발!
           add(CelebrationParticle(screenSize: size));
           onLevelComplete?.call();
         }
@@ -164,7 +142,11 @@ class ArrowPuzzleGame extends FlameGame {
       gameState.recordWrongMove();
       AudioManager().playBlocked();
       HapticManager().heavy();
-      onMoveCountChanged?.call();
+      onHeartsChanged?.call();
+
+      if (gameState.isGameOver) {
+        onGameOver?.call();
+      }
     }
   }
 
@@ -176,7 +158,7 @@ class ArrowPuzzleGame extends FlameGame {
     _activeAnimations = 0;
     removeAll(children);
     _setupBoard();
-    onMoveCountChanged?.call();
+    onHeartsChanged?.call();
   }
 
   /// 레벨 리셋
@@ -185,7 +167,7 @@ class ArrowPuzzleGame extends FlameGame {
     _activeAnimations = 0;
     removeAll(children);
     _setupBoard();
-    onMoveCountChanged?.call();
+    onHeartsChanged?.call();
   }
 
   /// Undo
@@ -193,17 +175,16 @@ class ArrowPuzzleGame extends FlameGame {
     if (gameState.undo()) {
       removeAll(children);
       _setupBoard();
-      onMoveCountChanged?.call();
+      onHeartsChanged?.call();
     }
   }
 
-  /// 힌트: 발사 가능한 화살표를 깜빡이게 표시
+  /// 힌트: 빠져나갈 수 있는 선을 깜빡이게 표시
   void showHint() {
-    final hintArrow = gameState.getHint();
-    if (hintArrow == null) return;
+    final hintPath = gameState.getHint();
+    if (hintPath == null) return;
 
-    final key = '${hintArrow.row}_${hintArrow.col}';
-    final component = _arrowComponents[key];
+    final component = _pathComponents[hintPath.id];
     if (component != null) {
       component.playHintAnimation();
     }

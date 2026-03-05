@@ -32,14 +32,14 @@ class _TutorialScreenState extends State<TutorialScreen> {
       description:
           'An arrow can only fire if there\'s\n'
           'nothing blocking its path.\n'
-          'Blocked arrows will shake!',
+          'Blocked lines will shake!',
       color: AppColors.neonOrange,
     ),
     _TutorialPage(
       icon: Icons.stars_rounded,
       title: 'Clear & Earn Stars',
       description:
-          'Remove ALL arrows to clear the level.\n'
+          'Remove ALL lines to clear the level.\n'
           'Fewer moves = more stars! ⭐⭐⭐\n'
           'Use Undo and Hint if you get stuck.',
       color: AppColors.neonGreen,

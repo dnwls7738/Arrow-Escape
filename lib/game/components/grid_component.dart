@@ -27,13 +27,9 @@ class GridComponent extends PositionComponent {
   void render(Canvas canvas) {
     super.render(canvas);
 
-    final bgPaint = Paint()..color = AppColors.bgDark;
-    final linePaint = Paint()
-      ..color = AppColors.gridLine
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    final showGrid = SettingsManager().showGrid;
+    final dotPaint = Paint()
+      ..color = AppColors.gridLine.withValues(alpha: 0.6)
+      ..style = PaintingStyle.fill;
 
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
@@ -42,15 +38,10 @@ class GridComponent extends PositionComponent {
         // 빈 공간으로 설정된 칸은 그리지 않음
         if (emptyCells.contains(key)) continue;
 
-        final rect = Rect.fromLTWH(c * cellSize, r * cellSize, cellSize, cellSize);
+        final center = Offset(c * cellSize + cellSize / 2, r * cellSize + cellSize / 2);
         
-        // 타일 배경
-        canvas.drawRect(rect, bgPaint);
-        
-        // 설정 켜진 경우에만 그리드 테두리
-        if (showGrid) {
-          canvas.drawRect(rect, linePaint);
-        }
+        // 점(Dot)
+        canvas.drawCircle(center, 2.0, dotPaint);
       }
     }
   }

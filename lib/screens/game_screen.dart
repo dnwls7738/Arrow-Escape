@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flame/game.dart';
+import 'package:flame/game.dart' hide Matrix4;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
@@ -9,7 +9,8 @@ import '../data/haptic_manager.dart';
 import '../data/ad_manager.dart';
 import '../game/arrow_puzzle_game.dart';
 import '../models/level_data.dart';
-import '../data/levels.dart';
+import '../data/levels.dart'; // Ensure it's here
+import '../data/level_service.dart';
 
 class GameScreen extends StatefulWidget {
   final LevelData levelData;
@@ -23,11 +24,13 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late ArrowPuzzleGame _game;
   late LevelData _currentLevelData;
-  int _moveCount = 0;
+  int _hearts = 3;
   bool _showClearOverlay = false;
+  bool _showGameOverOverlay = false;
   int _stars = 0;
   late AnimationController _clearAnimController;
   late Animation<double> _clearScaleAnim;
+  late TransformationController _transformController;
 
   @override
   void initState() {
@@ -41,15 +44,40 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       parent: _clearAnimController,
       curve: Curves.elasticOut,
     );
+    _transformController = TransformationController();
     _initGame();
+  }
+
+  void _updateInitialScale() {
+    // 그리드의 실제 픽셀 크기 (cellSize=20 고정)
+    const double cellSize = 20.0;
+    final gridW = _currentLevelData.cols * cellSize;
+    final gridH = _currentLevelData.rows * cellSize;
+    
+    // 화면에 맞는 스케일 계산
+    final screenW = MediaQuery.of(context).size.width - 64; // padding
+    final screenH = MediaQuery.of(context).size.height * 0.6; // game area
+    final scaleX = screenW / gridW;
+    final scaleY = screenH / gridH;
+    final scale = math.min(scaleX, scaleY);
+    
+    // 중앙 정렬 offset
+    final scaledW = gridW * scale;
+    final scaledH = gridH * scale;
+    final tx = (screenW - scaledW) / 2;
+    final ty = (screenH - scaledH) / 2;
+    
+    _transformController.value = Matrix4.identity()
+      ..translate(tx, ty)
+      ..scale(scale);
   }
 
   void _initGame() {
     _game = ArrowPuzzleGame(
       levelData: _currentLevelData,
-      onMoveCountChanged: () {
+      onHeartsChanged: () {
         setState(() {
-          _moveCount = _game.gameState.moveCount;
+          _hearts = _game.gameState.hearts;
         });
       },
       onLevelComplete: () {
@@ -62,12 +90,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         });
         _clearAnimController.forward(from: 0);
       },
+      onGameOver: () {
+        setState(() {
+          _showGameOverOverlay = true;
+        });
+        _clearAnimController.forward(from: 0);
+      },
     );
   }
 
   @override
   void dispose() {
     _clearAnimController.dispose();
+    _transformController.dispose();
     super.dispose();
   }
 
@@ -75,8 +110,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     AudioManager().playClick();
     HapticManager().light();
     setState(() {
-      _moveCount = 0;
+      _hearts = 3;
       _showClearOverlay = false;
+      _showGameOverOverlay = false;
     });
     _game.resetLevel();
   }
@@ -159,15 +195,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     );
   }
   void _nextLevel() {
+    final levels = LevelService().allLevels;
     final currentIndex =
-        allLevels.indexWhere((l) => l.id == _currentLevelData.id);
+        levels.indexWhere((l) => l.id == _currentLevelData.id);
         
     void proceedToNextLevel() {
-      if (currentIndex < allLevels.length - 1) {
+      if (currentIndex != -1 && currentIndex < levels.length - 1) {
         setState(() {
-          _currentLevelData = allLevels[currentIndex + 1];
+          _currentLevelData = levels[currentIndex + 1];
           _showClearOverlay = false;
-          _moveCount = 0;
+          _showGameOverOverlay = false;
+          _hearts = 3;
           _stars = 0;
         });
         _game.loadNewLevel(_currentLevelData);
@@ -214,17 +252,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: InteractiveViewer(
-                          minScale: 0.5,
-                          maxScale: 3.0,
+                          minScale: 0.8,
+                          maxScale: 5.0,
                           panEnabled: true,
-                          scaleEnabled: _currentLevelData.rows > 5 || _currentLevelData.cols > 5,
-                          constrained: false, // 중요한 속성: 자식이 부모 크기를 넘어설 수 있게 함
-                          // 명시적인 크기에 minCellSize 기반의 최대 크기 확보
-                          child: SizedBox(
-                            width: math.max(MediaQuery.of(context).size.width, _currentLevelData.cols * 40.0 + 32),
-                            height: math.max(MediaQuery.of(context).size.height, _currentLevelData.rows * 40.0 + 32),
-                            child: GameWidget(game: _game),
-                          ),
+                          scaleEnabled: true,
+                          child: GameWidget(game: _game),
                         ),
                       ),
                     ),
@@ -236,6 +268,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               ),
               // 레벨 클리어 오버레이
               if (_showClearOverlay) _buildClearOverlay(),
+              // 게임 오버 오버레이
+              if (_showGameOverOverlay) _buildGameOverOverlay(),
             ],
           ),
         ),
@@ -275,35 +309,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             ),
           ),
           const Spacer(),
-          // 이동 횟수
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: AppColors.bgCard,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$_moveCount',
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: _moveCount <= _currentLevelData.arrows.length
-                        ? AppColors.neonGreen
-                        : AppColors.neonOrange,
-                  ),
-                ),
-                Text(
-                  ' / ${_currentLevelData.arrows.length}',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
+          // 하트 표시
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(3, (index) {
+              return Icon(
+                index < _hearts ? Icons.favorite : Icons.favorite_border,
+                color: index < _hearts ? AppColors.neonOrange : AppColors.textMuted,
+                size: 24,
+              );
+            }),
           ),
         ],
       ),
@@ -442,7 +457,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Moves: $_moveCount / ${_currentLevelData.arrows.length}',
+                      'Remaining Hearts: $_hearts / 3',
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         color: AppColors.textSecondary,
@@ -519,6 +534,77 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildGameOverOverlay() {
+    return AnimatedBuilder(
+      animation: _clearScaleAnim,
+      builder: (context, child) {
+        return Container(
+          color: Colors.black.withValues(alpha: 0.75),
+          child: Center(
+            child: Transform.scale(
+              scale: _clearScaleAnim.value,
+              child: Container(
+                margin: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.bgCard,
+                      AppColors.bgDarkSecondary,
+                    ],
+                  ),
+                  border: Border.all(
+                    color: AppColors.neonOrange.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.heart_broken_rounded,
+                      color: AppColors.neonOrange,
+                      size: 64,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'FAILED',
+                      style: GoogleFonts.outfit(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.neonOrange,
+                        letterSpacing: 4,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Out of hearts!\nTry again from the start.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildOverlayButton(
+                      icon: Icons.refresh_rounded,
+                      label: 'Try Again',
+                      color: AppColors.neonOrange,
+                      onTap: _resetGame,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
