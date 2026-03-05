@@ -62,6 +62,39 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
           ),
           child: TabBarView(
             children: chapters.map((chapterLevels) {
+              if (chapterLevels.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.lock_clock_rounded,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'COMING SOON',
+                        style: GoogleFonts.outfit(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '새로운 악몽 난이도가 곧 추가됩니다.',
+                        style: GoogleFonts.notoSans(
+                          fontSize: 14,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               return Padding(
                 padding: const EdgeInsets.all(20),
                 child: GridView.builder(

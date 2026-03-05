@@ -309,54 +309,73 @@ def main():
     rng = random.Random()
     rp = lambda lo, hi: rng.randint(lo, hi)
 
-    difficulties = [
-        {'name': '쉬움',       'id': 1, 'ch': 1, 'paths': rp(5, 10)},
-        {'name': '보통',       'id': 2, 'ch': 2, 'paths': rp(15, 25)},
-        {'name': '어려움',     'id': 3, 'ch': 3, 'paths': rp(30, 50)},
-        {'name': '매우어려움', 'id': 4, 'ch': 4, 'paths': rp(60, 90)},
-        {'name': '악몽',       'id': 5, 'ch': 5, 'paths': rp(100, 150)},
+    LEVELS_PER_CHAPTER = 20
+
+    # 각 난이도의 화살표 수 범위 (레벨마다 랜덤)
+    difficulty_ranges = [
+        {'name': '쉬움',       'ch': 1, 'lo': 5,   'hi': 10},
+        {'name': '보통',       'ch': 2, 'lo': 15,  'hi': 25},
+        {'name': '어려움',     'ch': 3, 'lo': 30,  'hi': 50},
+        {'name': '매우어려움', 'ch': 4, 'lo': 60,  'hi': 90},
     ]
 
     code = ["import '../models/level_data.dart';", "import '../core/constants.dart';", ""]
 
-    for di, diff in enumerate(difficulties):
+    global_id = 1  # 전체 레벨 ID (1~80)
+
+    for di, diff in enumerate(difficulty_ranges):
         cn = di + 1
-        target = diff['paths']
-        orig = target
-
-        print(f"\n🎯 {diff['name']} ({target} paths): ", end='', flush=True, file=sys.stderr)
-
-        result = None
-        outer = 0
-        while result is None:
-            result = generate_level(target, rng)
-            outer += 1
-            if outer % 3 == 0:
-                print('.', end='', flush=True, file=sys.stderr)
-            if result is None and outer % 10 == 0 and target > 10:
-                reduced = max(10, int(target * 0.9))
-                print(f"\n   ⚠️ {target} → {reduced}", file=sys.stderr, flush=True)
-                print('   ', end='', file=sys.stderr, flush=True)
-                target = reduced
-
-        rows, cols, arrows = result
-        ds = {'↑': 0, '↓': 0, '←': 0, '→': 0}
-        for a in arrows:
-            ds[DIR_NAMES.get(a['dir'], '?')] = ds.get(DIR_NAMES.get(a['dir'], '?'), 0) + 1
-        adj = f" (adj {orig}→{target})" if target != orig else ""
-        print(f" ✓ {rows}×{cols} {len(arrows)}p Dirs:{ds}{adj}", file=sys.stderr)
+        print(f"\n{'='*50}", file=sys.stderr)
+        print(f"📦 Chapter {cn} - {diff['name']} ({LEVELS_PER_CHAPTER}개 생성 중...)", file=sys.stderr)
+        print(f"{'='*50}", file=sys.stderr)
 
         code.append(f"/// Chapter {cn} - {diff['name']}")
         code.append(f"final List<LevelData> chapter{cn}Levels = [")
-        code.append(gen_dart(diff['id'], cn, rows, cols, arrows))
+
+        for level_idx in range(LEVELS_PER_CHAPTER):
+            target = rp(diff['lo'], diff['hi'])
+            orig = target
+
+            print(f"  🎯 [{level_idx+1}/{LEVELS_PER_CHAPTER}] {diff['name']} ({target}p): ",
+                  end='', flush=True, file=sys.stderr)
+
+            result = None
+            outer = 0
+            while result is None:
+                result = generate_level(target, rng)
+                outer += 1
+                if outer % 3 == 0:
+                    print('.', end='', flush=True, file=sys.stderr)
+                if result is None and outer % 10 == 0 and target > 10:
+                    reduced = max(10, int(target * 0.9))
+                    print(f"\n     ⚠️ {target}→{reduced}", file=sys.stderr, flush=True)
+                    print('     ', end='', file=sys.stderr, flush=True)
+                    target = reduced
+
+            rows, cols, arrows = result
+            ds = {'↑': 0, '↓': 0, '←': 0, '→': 0}
+            for a in arrows:
+                ds[DIR_NAMES.get(a['dir'], '?')] = ds.get(DIR_NAMES.get(a['dir'], '?'), 0) + 1
+            adj = f" (adj {orig}→{target})" if target != orig else ""
+            print(f" ✓ {rows}×{cols} {len(arrows)}p{adj}", file=sys.stderr)
+
+            code.append(gen_dart(global_id, cn, rows, cols, arrows))
+            global_id += 1
+
         code.append("];")
         code.append("")
+
+    # Chapter 5 - Coming Soon (빈 리스트)
+    code.append("/// Chapter 5 - 악몽 (Coming Soon)")
+    code.append("final List<LevelData> chapter5Levels = [];")
+    code.append("")
 
     with open(os.path.join('lib', 'data', 'levels.dart'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(code) + '\n')
 
-    print("\n✅ Done!", file=sys.stderr)
+    print(f"\n✅ Done! {global_id - 1}개 레벨 생성 완료!", file=sys.stderr)
 
 
 if __name__ == '__main__':
     main()
+
