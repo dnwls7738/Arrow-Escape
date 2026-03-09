@@ -12,26 +12,20 @@ class AudioManager {
   bool _initialized = false;
   bool _bgmPlaying = false;
 
-  late AudioPool _shootPool;
-  late AudioPool _blockedPool;
-  late AudioPool _clearPool;
-  late AudioPool _clickPool;
-  late AudioPool _undoPool;
-
-  /// 앱 구동 시 오디오 캐시 및 풀 초기화
+  /// 앱 구동 시 오디오 캐시 로드
   Future<void> init() async {
     if (_initialized) return;
     try {
-      // SFX 프리로드 및 AudioPool 생성
-      _shootPool = await FlameAudio.createPool('shoot.ogg', minPlayers: 1, maxPlayers: 15);
-      _blockedPool = await FlameAudio.createPool('blocked.ogg', minPlayers: 1, maxPlayers: 5);
-      _clearPool = await FlameAudio.createPool('clear.ogg', minPlayers: 1, maxPlayers: 2);
-      _clickPool = await FlameAudio.createPool('click.ogg', minPlayers: 1, maxPlayers: 5);
-      _undoPool = await FlameAudio.createPool('undo.ogg', minPlayers: 1, maxPlayers: 5);
-
+      // AudioPool 대신 단순 캐시에만 로드하여 버퍼 고갈 방지
+      await FlameAudio.audioCache.loadAll([
+        'shoot.ogg',
+        'blocked.ogg',
+        'clear.ogg',
+        'click.ogg',
+        'undo.ogg',
+      ]);
       _initialized = true;
     } catch (e) {
-      // 오디오 초기화 실패 시 무시 (웹 환경 첫 로드 등)
       Logger.log('AudioManager init warning: $e');
     }
   }
@@ -40,27 +34,27 @@ class AudioManager {
 
   void playShoot() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    _shootPool.start(volume: 0.3);
+    FlameAudio.play('shoot.ogg', volume: 0.3);
   }
 
   void playBlocked() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    _blockedPool.start(volume: 0.3);
+    FlameAudio.play('blocked.ogg', volume: 0.3);
   }
 
   void playClear() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    _clearPool.start(volume: 0.3);
+    FlameAudio.play('clear.ogg', volume: 0.3);
   }
 
   void playClick() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    _clickPool.start(volume: 0.3);
+    FlameAudio.play('click.ogg', volume: 0.3);
   }
 
   void playUndo() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    _undoPool.start(volume: 0.3);
+    FlameAudio.play('undo.ogg', volume: 0.3);
   }
 
   // ── BGM ──
