@@ -35,7 +35,9 @@ void main() async {
   await UserManager().init();
   await ScoreManager().init();
   await SettingsManager().init();
-  await AudioManager().init();
+  
+  // 오디오 및 광고 초기화는 앱 시작을 막지 않도록 비동기로 바로 실행
+  AudioManager().init();
   
   // 광고 초기화는 앱 시작을 막지 않도록 비동기로 바로 실행 (await 제거)
   AdManager().init();
