@@ -36,7 +36,9 @@ void main() async {
   await ScoreManager().init();
   await SettingsManager().init();
   await AudioManager().init();
-  await AdManager().init();
+  
+  // 광고 초기화는 앱 시작을 막지 않도록 비동기로 바로 실행 (await 제거)
+  AdManager().init();
   
   // 구글 로그인 유저면 프로필 정보(email/name) 자동 동기화
   final currentUser = AuthService().currentUser;
