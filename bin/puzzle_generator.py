@@ -284,6 +284,86 @@ def can_escape(chain, direction, my_id, grid, rows, cols):
 
     return False
 
+# =====================================================================
+# AI Solver 엔진 탑재 (난이도 자동 정렬 및 막힘 방지용 채점관)
+# =====================================================================
+
+def simulate_escape(chain, direction, my_id, active_ids, grid, rows, cols):
+    """
+    한 마리의 뱀이 현재 맵(active_ids) 상태에서 탈출 가능한지 시뮬레이션. (고속 버전)
+    """
+    sim = list(chain)
+    dr, dc = direction
+    max_steps = rows + cols + len(chain) # 탈출구는 그리드 크기를 넘지 않음 (최적화)
+
+    for _ in range(max_steps):
+        hr, hc = sim[-1]
+        nr, nc = hr + dr, hc + dc
+
+        if 0 <= nr < rows and 0 <= nc < cols:
+            # 1. 벽 충돌
+            cell = grid[nr][nc]
+            if cell == -2:
+                return False
+            # 2. 타 살아있는 뱀 충돌 (자기 몸통(k>0)도 cell ID로 확인 가능하지만, 꼬리 추적 위해 명확히)
+            if cell >= 0 and cell != my_id and cell in active_ids:
+                return False
+            # 3. 자기 몸통 충돌
+            if (nr, nc) in sim[1:]:
+                return False
+
+        sim.append((nr, nc))
+        sim.pop(0)
+
+        # 완전 탈출 판단 (가장 꼬리가 격자 밖으로 나갔거나, 머리가 확실히 격자 범위를 넘어갔을 때 조기 종료)
+        if hr < 0 or hr >= rows or hc < 0 or hc >= cols:
+            # 머리가 나갔다면 뒤따라 나갈 수 있음 (다른 뱀 충돌이 없었다면)
+            # 확실하게 하기 위해 모든 마디 검사
+            if all(r < 0 or r >= rows or c < 0 or c >= cols for r, c in sim):
+                return True
+
+    return False
+
+def solve_puzzle(paths, rows, cols, grid):
+    """
+    AI Solver: 현재 퍼즐 상태에서 답을 도출하며 난이도 스코어를 매깁니다. (고속 버전)
+    """
+    active_ids = set(p['id'] for p in paths)
+    path_dict = {p['id']: p for p in paths}
+    
+    score = 0
+    moves = 0
+    
+    # 교착 방지를 위한 while 루트
+    stuck_counter = 0
+    max_iter = len(paths) * 2 # 너무 오랫동안 못 풀면 어차피 버려야 할 맵
+    
+    while active_ids:
+        escaped_this_turn = []
+        
+        for sid in list(active_ids):
+            p = path_dict[sid]
+            # 이 뱀이 지금 탈출할 수 있는가?
+            if simulate_escape(p['segs'], p['dir'], sid, active_ids, grid, rows, cols):
+                escaped_this_turn.append(sid)
+        
+        if not escaped_this_turn:
+            return False, 0 # 교착
+            
+        for sid in escaped_this_turn:
+            active_ids.remove(sid)
+            # 의존성 및 길이 기반 간단 점수 산출
+            score += len(path_dict[sid]['segs']) * 2 + moves * 3 + max(0, 5 - len(escaped_this_turn))
+            
+        moves += 1
+        stuck_counter += 1
+        if stuck_counter > max_iter:
+            return False, 0
+
+    return True, score
+
+# =====================================================================
+
 
 def orient_and_verify(chains, rows, cols, rng, mask_grid=None):
     """Dart orientAndVerify 정확 포트"""
@@ -446,7 +526,24 @@ def generate_level(target_paths, rng, mask_type=None):
                         if mask_grid[r][c] == 0:
                             empty_cells.append(f"{r}_{c}")
 
-            return rows, cols, paths, empty_cells
+            # AI Solver 검증
+            # orient_and_verify 내부에서 사용하는 grid와 동일하게 재구성
+            eval_grid = [[-1] * cols for _ in range(rows)]
+            if mask_grid:
+                for r in range(rows):
+                    for c in range(cols):
+                        if mask_grid[r][c] == 0:
+                            eval_grid[r][c] = -2
+            for p in paths:
+                for r, c in p['segs']:
+                    eval_grid[r][c] = p['id']
+
+            solvable, score = solve_puzzle(paths, rows, cols, eval_grid)
+            if not solvable:
+                # 겉보기엔 규칙을 통과했으나 실제 풀어보면 교착상태인 맵 (폐기)
+                continue
+
+            return rows, cols, paths, empty_cells, score
 
     return None
 
@@ -473,13 +570,11 @@ def gen_dart(ch_id, ch_num, rows, cols, arrows, empty_cells):
 
 
 def generate_level_worker(task):
-    global_id = task['global_id']
     cn = task['cn']
     target = task['target']
     orig_target = target
     seed = task['seed']
     diff_name = task['diff_name']
-    level_idx = task['level_idx']
     mask_type = task.get('mask_type')
     
     rng = random.Random(seed)
@@ -492,20 +587,18 @@ def generate_level_worker(task):
         if result is None and outer % 10 == 0 and target > 10:
             target = max(10, int(target * 0.9))
             
-    rows, cols, arrows, empty_cells = result
-    dart_code = gen_dart(global_id, cn, rows, cols, arrows, empty_cells)
+    rows, cols, arrows, empty_cells, score = result
     
     return {
-        'global_id': global_id,
         'cn': cn,
         'diff_name': diff_name,
-        'level_idx': level_idx,
         'orig_target': orig_target,
         'final_target': target,
         'rows': rows,
         'cols': cols,
-        'dart_code': dart_code,
-        'arrows': arrows
+        'arrows': arrows,
+        'empty_cells': empty_cells,
+        'score': score
     }
 
 
@@ -527,10 +620,9 @@ def main():
     print("🚀 퍼즐 생성을 시작합니다... (특수 도형 및 멀티프로세싱 도입)", file=sys.stderr)
 
     tasks = []
-    global_id = 1
     for diff in difficulty_ranges:
         cn = diff['ch']
-        for level_idx in range(LEVELS_PER_CHAPTER):
+        for _ in range(LEVELS_PER_CHAPTER):
             target = rp(diff['lo'], diff['hi'])
             
             mask_type = None
@@ -538,15 +630,12 @@ def main():
                 mask_type = rng.choice(list(MASKS_ASCII.keys()))
                 
             tasks.append({
-                'global_id': global_id,
                 'cn': cn,
                 'diff_name': diff['name'],
                 'target': target,
-                'level_idx': level_idx,
                 'seed': rng.randint(0, 2**32 - 1),
                 'mask_type': mask_type
             })
-            global_id += 1
 
     results = []
     # 프로세스 기반 병렬 처리
@@ -557,19 +646,37 @@ def main():
             results.append(res)
             # 완료된 작업 출력
             adj = f" (adj {res['orig_target']}→{res['final_target']})" if res['final_target'] != res['orig_target'] else ""
-            print(f" ✓ [Ch {res['cn']} - {res['diff_name']}] #{res['level_idx']+1} : {res['rows']}×{res['cols']} {len(res['arrows'])}p{adj}", file=sys.stderr)
+            print(f" ✓ [Ch {res['cn']} - {res['diff_name']}] 맵 생성 완료! AI Score: {res['score']:<5} ({res['cols']}x{res['rows']} {len(res['arrows'])}p){adj}", file=sys.stderr)
 
-    # global_id 순으로 결과 정렬
-    results.sort(key=lambda x: x['global_id'])
-
+    # 생성된 결과를 Chapter(cn) 별로 그룹화한 뒤, 
+    # AI 복잡도 스코어(score) 순으로 오름차순 정렬하여 최종 global_id를 부여!
+    
     code = ["import '../models/level_data.dart';", "import '../core/constants.dart';", ""]
-
-    for cn, group in groupby(results, key=lambda x: x['cn']):
+    
+    global_id = 1
+    grouped_by_ch = {}
+    for res in results:
+        cn = res['cn']
+        if cn not in grouped_by_ch:
+            grouped_by_ch[cn] = []
+        grouped_by_ch[cn].append(res)
+        
+    for cn in sorted(grouped_by_ch.keys()):
         diff_name = next((d['name'] for d in difficulty_ranges if d['ch'] == cn), "Unknown")
+        
+        # 여기서 스코어 순으로 강제 정렬 (1스테이지가 가장 점수 낮고, 20스테이지가 가장 높게)
+        ch_levels = grouped_by_ch[cn]
+        ch_levels.sort(key=lambda x: x['score'])
+        
         code.append(f"/// Chapter {cn} - {diff_name}")
         code.append(f"final List<LevelData> chapter{cn}Levels = [")
-        for res in group:
-            code.append(res['dart_code'])
+        
+        for idx, res in enumerate(ch_levels):
+            # 정렬된 순서대로 Dart 코드 생성
+            dart_code = gen_dart(global_id, cn, res['rows'], res['cols'], res['arrows'], res['empty_cells'])
+            code.append(dart_code)
+            global_id += 1
+            
         code.append("];")
         code.append("")
 
