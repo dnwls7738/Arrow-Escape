@@ -27,8 +27,11 @@ class GridComponent extends PositionComponent {
   void render(Canvas canvas) {
     super.render(canvas);
 
+    // 설정에서 bg dot(그리드) 표시를 껐다면 그리지 않음
+    if (!SettingsManager().showGrid) return;
+
     final dotPaint = Paint()
-      ..color = AppColors.gridLine.withValues(alpha: 0.6)
+      ..color = Colors.white.withValues(alpha: 0.25) // 점을 조금 더 하얗게 설정
       ..style = PaintingStyle.fill;
 
     for (int r = 0; r < rows; r++) {

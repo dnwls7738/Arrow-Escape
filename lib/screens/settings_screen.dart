@@ -56,9 +56,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: sm.setHapticEnabled,
               ),
               const SizedBox(height: 12),
-              _buildSwitchCard(
-                title: 'Show Grid Layout',
-                icon: Icons.grid_4x4,
+              _buildSwitchItem(
+                title: 'Show Background Dots',
+                icon: Icons.blur_on,
                 value: sm.showGrid,
                 onChanged: sm.setShowGrid,
               ),
