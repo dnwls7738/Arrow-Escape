@@ -12,13 +12,23 @@ class AudioManager {
   bool _initialized = false;
   bool _bgmPlaying = false;
 
-  /// 앱 구동 시 오디오 캐시 로드
+  late AudioPool _shootPool;
+  late AudioPool _blockedPool;
+  late AudioPool _clearPool;
+  late AudioPool _clickPool;
+  late AudioPool _undoPool;
+
+  /// 앱 구동 시 오디오 캐시 및 풀 초기화
   Future<void> init() async {
     if (_initialized) return;
     try {
-      // 에뮬레이터에서 오디오 캐싱(loadAll) 시 JVM이 터지는 현상을 방지하기 위해
-      // 여기서 미리 로드하지 않고, 첫 재생 시점(FlameAudio.play)에서 
-      // 지연 로딩되도록 변경합니다. (Lazy Loading)
+      // SFX 프리로드 및 AudioPool 생성
+      _shootPool = await FlameAudio.createPool('shoot.ogg', minPlayers: 1, maxPlayers: 15);
+      _blockedPool = await FlameAudio.createPool('blocked.ogg', minPlayers: 1, maxPlayers: 5);
+      _clearPool = await FlameAudio.createPool('clear.ogg', minPlayers: 1, maxPlayers: 2);
+      _clickPool = await FlameAudio.createPool('click.ogg', minPlayers: 1, maxPlayers: 5);
+      _undoPool = await FlameAudio.createPool('undo.ogg', minPlayers: 1, maxPlayers: 5);
+
       _initialized = true;
     } catch (e) {
       Logger.log('AudioManager init warning: $e');
@@ -29,27 +39,27 @@ class AudioManager {
 
   void playShoot() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    FlameAudio.play('shoot.ogg', volume: 0.3);
+    _shootPool.start(volume: 0.3);
   }
 
   void playBlocked() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    FlameAudio.play('blocked.ogg', volume: 0.3);
+    _blockedPool.start(volume: 0.3);
   }
 
   void playClear() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    FlameAudio.play('clear.ogg', volume: 0.3);
+    _clearPool.start(volume: 0.3);
   }
 
   void playClick() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    FlameAudio.play('click.ogg', volume: 0.3);
+    _clickPool.start(volume: 0.3);
   }
 
   void playUndo() {
     if (!SettingsManager().sfxEnabled || !_initialized) return;
-    FlameAudio.play('undo.ogg', volume: 0.3);
+    _undoPool.start(volume: 0.3);
   }
 
   // ── BGM ──

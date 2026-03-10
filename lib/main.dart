@@ -20,13 +20,38 @@ import 'data/cloud_save_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 로컬 저장소 및 계정, 설정 초기화 (순수 로컬 캐시는 빠른 로딩 지원)
+  // Firebase 초기화
+  await Firebase.initializeApp();
+  
+  // 로그인 안 되어 있으면 자동 익명 로그인 (게스트 모드)
+  if (AuthService().currentUser == null) {
+    await AuthService().signInAnonymously();
+    Logger.log('✅ Anonymous login: ${AuthService().currentUser?.uid}');
+  } else {
+    Logger.log('✅ Already logged in: ${AuthService().currentUser?.uid} (anonymous: ${AuthService().currentUser?.isAnonymous})');
+  }
+  
+  // 로컬 저장소 및 계정, 설정 초기화
   await UserManager().init();
   await ScoreManager().init();
   await SettingsManager().init();
+  await AudioManager().init();
+  await AdManager().init();
+  
+  // 구글 로그인 유저면 프로필 정보(email/name) 자동 동기화
+  final currentUser = AuthService().currentUser;
+  if (currentUser != null && !currentUser.isAnonymous) {
+    CloudSaveService().uploadProgress();
+  }
+  
+  // Firestore에서 레벨 로딩 (실패 시 로컬 폴백)
+  await LevelService().init();
   
   // 설정 변경 시 오디오 매니저에 알림
   SettingsManager().addListener(() => AudioManager().onSettingsChanged());
+  
+  // BGM 시작 (앱 전체에서 한 번만)
+  AudioManager().startBgm();
   
   // 상태바 투명, 다크 모드
   SystemChrome.setSystemUIOverlayStyle(
@@ -79,58 +104,23 @@ class _AppStarter extends StatefulWidget {
 
 class _AppStarterState extends State<_AppStarter> {
   bool? _tutorialSeen;
-  bool _isServicesInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initAppServices();
+    _checkTutorial();
   }
 
-  Future<void> _initAppServices() async {
-    try {
-      // 1. Firebase 초기화
-      await Firebase.initializeApp();
-      
-      // 2. 로그인 체킹 (네트워크 지연 우려)
-      if (AuthService().currentUser == null) {
-        await AuthService().signInAnonymously();
-        Logger.log('✅ Anonymous login: ${AuthService().currentUser?.uid}');
-      } else {
-        Logger.log('✅ Already logged in: ${AuthService().currentUser?.uid}');
-      }
-
-      // 구글 로그인 유저면 프로필 정보(email/name) 자동 동기화
-      final currentUser = AuthService().currentUser;
-      if (currentUser != null && !currentUser.isAnonymous) {
-        CloudSaveService().uploadProgress();
-      }
-
-      // 오디오 및 광고 지연 초기화
-      AudioManager().init();
-      AdManager().init();
-
-      // Firestore에서 레벨 로딩
-      await LevelService().init();
-      
-      AudioManager().startBgm();
-
-    } catch (e) {
-      Logger.log('Service Init Error: $e');
-    }
-
+  Future<void> _checkTutorial() async {
     final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    
     setState(() {
       _tutorialSeen = prefs.getBool('tutorial_seen') ?? false;
-      _isServicesInitialized = true;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isServicesInitialized || _tutorialSeen == null) {
+    if (_tutorialSeen == null) {
       // 로딩 중
       return const Scaffold(
         backgroundColor: AppColors.bgDark,
