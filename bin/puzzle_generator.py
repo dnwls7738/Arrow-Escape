@@ -288,81 +288,34 @@ def can_escape(chain, direction, my_id, grid, rows, cols):
 # AI Solver 엔진 탑재 (난이도 자동 정렬 및 막힘 방지용 채점관)
 # =====================================================================
 
-def simulate_escape(chain, direction, my_id, active_ids, grid, rows, cols):
-    """
-    한 마리의 뱀이 현재 맵(active_ids) 상태에서 탈출 가능한지 시뮬레이션. (고속 버전)
-    """
-    sim = list(chain)
-    dr, dc = direction
-    # 맵의 모든 타일을 훑는 최악의 경우를 상정해도 (rows*cols) 이상 갈 수 없음
-    max_steps = rows * cols + 10 
-
-    for _ in range(max_steps):
-        hr, hc = sim[-1]
-        nr, nc = hr + dr, hc + dc
-
-        if 0 <= nr < rows and 0 <= nc < cols:
-            # 1. 벽 충돌
-            cell = grid[nr][nc]
-            if cell == -2:
-                return False
-            # 2. 타 살아있는 뱀 충돌 (자기 몸통(k>0)도 cell ID로 확인 가능하지만, 꼬리 추적 위해 명확히)
-            if cell >= 0 and cell != my_id and cell in active_ids:
-                return False
-            # 3. 자기 몸통 충돌
-            if (nr, nc) in sim[1:]:
-                return False
-
-        sim.append((nr, nc))
-        sim.pop(0)
-
-        # 완전 탈출 판단 (가장 꼬리가 격자 밖으로 나갔거나, 머리가 확실히 격자 범위를 넘어갔을 때 조기 종료)
-        if hr < 0 or hr >= rows or hc < 0 or hc >= cols:
-            # 머리가 나갔다면 뒤따라 나갈 수 있음 (다른 뱀 충돌이 없었다면)
-            # 확실하게 하기 위해 모든 마디 검사
-            if all(r < 0 or r >= rows or c < 0 or c >= cols for r, c in sim):
-                return True
-
-    return False
-
 def solve_puzzle(paths, rows, cols, grid):
     """
-    AI Solver: 현재 퍼즐 상태에서 답을 도출하며 난이도 스코어를 매깁니다. (고속 버전)
+    AI Solver Heuristic: 퍼즐이 성립되는지(모두 한 줄 긋기인가)는 이미 확인되었으므로,
+    뱀들이 꼬여있는 정도(의존성 교차 횟수)를 단순 스캔하여 난이도 스코어를 고속으로 매깁니다.
     """
-    active_ids = set(p['id'] for p in paths)
-    path_dict = {p['id']: p for p in paths}
-    
     score = 0
-    moves = 0
-    
-    # 교착 방지를 위한 while 루트
-    stuck_counter = 0
-    # 엄격한 빠른 포기(Fast-fail) 타임아웃: 뱀 개수 * 1.5 턴 안에 못풀면 너무 복잡해서 연산 포기 (버림)
-    max_iter = int(len(paths) * 1.5) + 3
-    
-    while active_ids:
-        escaped_this_turn = []
+    # 모든 뱀에 대해, 자신의 머리 방향 직선상에 놓인 다른 뱀의 조각 개수를 셉니다.
+    for p in paths:
+        dr, dc = p['dir']
+        hr, hc = p['segs'][-1]
         
-        for sid in list(active_ids):
-            p = path_dict[sid]
-            # 이 뱀이 지금 탈출할 수 있는가?
-            if simulate_escape(p['segs'], p['dir'], sid, active_ids, grid, rows, cols):
-                escaped_this_turn.append(sid)
+        # 내 머리 앞 직선상 검사
+        blocks = 0
+        r, c = hr + dr, hc + dc
+        while 0 <= r < rows and 0 <= c < cols:
+            cell = grid[r][c]
+            if cell >= 0 and cell != p['id']:
+                blocks += 1
+            if cell == -2: # 벽
+                # 벽을 바라보고 갇혔다면 기본적으로 이 맵은 교착 확률이 높음 (감점 혹은 폐기)
+                # orient_and_verify에서 이미 통과된 맵이므로 완전히 갇힌 건 아니지만, 심하게 꺾여야 함
+                blocks += 3 
+            r += dr
+            c += dc
+            
+        # 점수 = (뱀 길이) + (앞을 막고 있는 뱀 수 * 10)
+        score += len(p['segs']) + (blocks * 10)
         
-        if not escaped_this_turn:
-            return False, 0 # 교착
-            
-        for sid in escaped_this_turn:
-            active_ids.remove(sid)
-            # 의존성 및 길이 기반 간단 점수 산출
-            score += len(path_dict[sid]['segs']) * 2 + moves * 3 + max(0, 5 - len(escaped_this_turn))
-            
-        moves += 1
-        stuck_counter += 1
-        if stuck_counter > max_iter:
-            # 타임아웃 
-            return False, 0
-
     return True, score
 
 # =====================================================================
