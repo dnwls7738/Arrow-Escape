@@ -490,8 +490,10 @@ def generate_level(target_paths, rng, mask_type=None):
     is_hard = target_paths > 60
     base_cpp = 12.0 if is_hard else 10.0
 
-    for attempt in range(5000):
-        expansion = 1.0 + (attempt // 500) * 0.02
+    max_attempts = 300 if mask_type else 2000
+
+    for attempt in range(max_attempts):
+        expansion = 1.0 + (attempt // (100 if mask_type else 500)) * 0.02
         cpp = base_cpp * expansion
         area = int(target_paths * cpp)
 
@@ -586,8 +588,10 @@ def generate_level_worker(task):
     while result is None:
         result = generate_level(target, rng, mask_type)
         outer += 1
-        if result is None and outer % 10 == 0 and target > 10:
-            target = max(10, int(target * 0.9))
+        
+        drop_interval = 2 if mask_type else 5
+        if result is None and outer % drop_interval == 0 and target > 10:
+            target = max(10, int(target * 0.85))
             
     rows, cols, arrows, empty_cells, score = result
     
