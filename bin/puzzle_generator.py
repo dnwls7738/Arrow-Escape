@@ -10,17 +10,151 @@ import random
 import math
 import sys
 import os
+import concurrent.futures
+from itertools import groupby
 
 DIRS = [(-1, 0), (1, 0), (0, -1), (0, 1)]
 DIR_NAMES = {(-1, 0): '↑', (1, 0): '↓', (0, -1): '←', (0, 1): '→'}
 
+MASKS_ASCII = {
+    'heart': [
+        "  ██  ██  ",
+        " ████████ ",
+        "██████████",
+        "██████████",
+        " ████████ ",
+        "  ██████  ",
+        "   ████   ",
+        "    ██    "
+    ],
+    'cross': [
+        "   ████   ",
+        "   ████   ",
+        "   ████   ",
+        "██████████",
+        "██████████",
+        "██████████",
+        "   ████   ",
+        "   ████   ",
+        "   ████   "
+    ],
+    'diamond': [
+        "    ██    ",
+        "   ████   ",
+        "  ██████  ",
+        " ████████ ",
+        "██████████",
+        " ████████ ",
+        "  ██████  ",
+        "   ████   ",
+        "    ██    "
+    ],
+    'spaceship': [
+        "    ██    ",
+        "   ████   ",
+        "  ██████  ",
+        "  ██████  ",
+        "██████████",
+        "██████████",
+        " ██ ██ ██ ",
+        " ██    ██ "
+    ],
+    'skull': [
+        "   ████   ",
+        "  ██████  ",
+        " ████████ ",
+        " ██ ██ ██ ",
+        " ████████ ",
+        "  ██  ██  ",
+        "   ████   "
+    ],
+    'star': [
+        "    ██    ",
+        "   ████   ",
+        "██████████",
+        " ████████ ",
+        "  ██████  ",
+        "  ██  ██  ",
+        " ██    ██ "
+    ],
+    'house': [
+        "    ██    ",
+        "   ████   ",
+        "  ██████  ",
+        " ████████ ",
+        "██████████",
+        " ████████ ",
+        " ████████ ",
+        " ████████ "
+    ],
+    'triangle': [
+        "     ██     ",
+        "    ████    ",
+        "   ██████   ",
+        "  ████████  ",
+        " ██████████ ",
+        "████████████"
+    ],
+    'hourglass': [
+        "██████████",
+        " ████████ ",
+        "  ██████  ",
+        "   ████   ",
+        "    ██    ",
+        "   ████   ",
+        "  ██████  ",
+        " ████████ ",
+        "██████████"
+    ],
+    'mushroom': [
+        "   ████   ",
+        "  ██████  ",
+        " ████████ ",
+        "██████████",
+        "  ██████  ",
+        "   ████   ",
+        "   ████   "
+    ]
+}
 
-def fill_rectangle(rows, cols, num_paths, rng):
+def scale_mask(ascii_mask, target_area):
+    orig_rows = len(ascii_mask)
+    orig_cols = max(len(r) for r in ascii_mask)
+    
+    orig_ones = sum(c != ' ' for r in ascii_mask for c in r)
+    scale_factor = math.sqrt(target_area / max(1, orig_ones))
+    
+    new_rows = max(4, round(orig_rows * scale_factor))
+    new_cols = max(4, round(orig_cols * scale_factor))
+    
+    mask = [[0] * new_cols for _ in range(new_rows)]
+    for r in range(new_rows):
+        for c in range(new_cols):
+            orig_r = min(orig_rows - 1, int(r / scale_factor))
+            orig_c = min(orig_cols - 1, int(c / scale_factor))
+            
+            if orig_c < len(ascii_mask[orig_r]) and ascii_mask[orig_r][orig_c] != ' ':
+                mask[r][c] = 1
+                
+    return new_rows, new_cols, mask
+
+
+def fill_rectangle(rows, cols, num_paths, rng, mask_grid=None):
     """Dart fillRectangle 정확 포트 - Warnsdorff round-robin"""
     grid = [[-1] * cols for _ in range(rows)]
+    if mask_grid:
+        for r in range(rows):
+            for c in range(cols):
+                if mask_grid[r][c] == 0:
+                    grid[r][c] = -2  # 벽 처리
+                    
     chains = []
 
-    cells = [(r, c) for r in range(rows) for c in range(cols)]
+    cells = [(r, c) for r in range(rows) for c in range(cols) if grid[r][c] == -1]
+    
+    if len(cells) < num_paths:
+        return None
+        
     rng.shuffle(cells)
 
     for i in range(num_paths):
@@ -29,7 +163,7 @@ def fill_rectangle(rows, cols, num_paths, rng):
         chains.append([(r, c)])
 
     filled = num_paths
-    total = rows * cols
+    total = len(cells)
     stuck = 0
 
     while filled < total and stuck < 200:
@@ -139,7 +273,7 @@ def can_escape(chain, direction, my_id, grid, rows, cols):
                     return False
             # 타 뱀 충돌
             cell = grid[nr][nc]
-            if cell != -1 and cell != my_id:
+            if cell >= 0 and cell != my_id:
                 return False
 
         sim.append((nr, nc))
@@ -151,13 +285,19 @@ def can_escape(chain, direction, my_id, grid, rows, cols):
     return False
 
 
-def orient_and_verify(chains, rows, cols, rng):
+def orient_and_verify(chains, rows, cols, rng, mask_grid=None):
     """Dart orientAndVerify 정확 포트"""
     remaining = set(range(len(chains)))
     grid = [[-1] * cols for _ in range(rows)]
     for i, chain in enumerate(chains):
         for r, c in chain:
             grid[r][c] = i
+            
+    if mask_grid:
+        for r in range(rows):
+            for c in range(cols):
+                if mask_grid[r][c] == 0:
+                    grid[r][c] = -2
 
     result = {}
 
@@ -253,7 +393,7 @@ def orient_and_verify(chains, rows, cols, rng):
     return paths
 
 
-def generate_level(target_paths, rng):
+def generate_level(target_paths, rng, mask_type=None):
     """레벨 생성"""
     is_hard = target_paths > 60
     base_cpp = 12.0 if is_hard else 10.0
@@ -263,33 +403,45 @@ def generate_level(target_paths, rng):
         cpp = base_cpp * expansion
         area = int(target_paths * cpp)
 
-        ratio = 0.8 + rng.random() * 0.4
-        cols = max(4, round(math.sqrt(area * ratio)))
-        rows = max(4, round(area / cols))
+        if mask_type and mask_type in MASKS_ASCII:
+            rows, cols, mask_grid = scale_mask(MASKS_ASCII[mask_type], area)
+        else:
+            ratio = 0.8 + rng.random() * 0.4
+            cols = max(4, round(math.sqrt(area * ratio)))
+            rows = max(4, round(area / cols))
+            mask_grid = None
 
-        min_ratio = 5.0 if target_paths > 200 else (4.0 if target_paths > 100 else 3.0)
-        if rows * cols < target_paths * min_ratio:
-            rows = round(rows * 1.3)
-            cols = round(cols * 1.3)
+        if mask_grid is None:
+            min_ratio = 5.0 if target_paths > 200 else (4.0 if target_paths > 100 else 3.0)
+            if rows * cols < target_paths * min_ratio:
+                rows = round(rows * 1.3)
+                cols = round(cols * 1.3)
 
-        chains = fill_rectangle(rows, cols, target_paths, rng)
+        chains = fill_rectangle(rows, cols, target_paths, rng, mask_grid)
         if chains is None:
             continue
 
-        paths = orient_and_verify(chains, rows, cols, rng)
+        paths = orient_and_verify(chains, rows, cols, rng, mask_grid)
         if paths is not None:
             # 평균 길이 검사 (30개 미만)
             if len(paths) < 30:
                 avg = sum(len(p['segs']) for p in paths) / len(paths)
                 if avg < 4.0:
                     continue
+            
+            empty_cells = []
+            if mask_grid:
+                for r in range(rows):
+                    for c in range(cols):
+                        if mask_grid[r][c] == 0:
+                            empty_cells.append(f"{r}_{c}")
 
-            return rows, cols, paths
+            return rows, cols, paths, empty_cells
 
     return None
 
 
-def gen_dart(ch_id, ch_num, rows, cols, arrows):
+def gen_dart(ch_id, ch_num, rows, cols, arrows, empty_cells):
     lines = [f'  // {rows}×{cols}, {len(arrows)} paths']
     lines.append(f'  const LevelData(')
     lines.append(f'    id: {ch_id}, chapter: {ch_num}, rows: {rows}, cols: {cols},')
@@ -301,8 +453,50 @@ def gen_dart(ch_id, ch_num, rows, cols, arrows):
         lines.append(f'      ]),')
     lines.append(f'    ],')
     lines.append(f'    par: {len(arrows)},')
+    
+    if empty_cells:
+        formatted_cells = ', '.join([f"'{cell}'" for cell in empty_cells])
+        lines.append(f'    emptyCells: [{formatted_cells}],')
+        
     lines.append(f'  ),')
     return '\n'.join(lines)
+
+
+def generate_level_worker(task):
+    global_id = task['global_id']
+    cn = task['cn']
+    target = task['target']
+    orig_target = target
+    seed = task['seed']
+    diff_name = task['diff_name']
+    level_idx = task['level_idx']
+    mask_type = task.get('mask_type')
+    
+    rng = random.Random(seed)
+    
+    result = None
+    outer = 0
+    while result is None:
+        result = generate_level(target, rng, mask_type)
+        outer += 1
+        if result is None and outer % 10 == 0 and target > 10:
+            target = max(10, int(target * 0.9))
+            
+    rows, cols, arrows, empty_cells = result
+    dart_code = gen_dart(global_id, cn, rows, cols, arrows, empty_cells)
+    
+    return {
+        'global_id': global_id,
+        'cn': cn,
+        'diff_name': diff_name,
+        'level_idx': level_idx,
+        'orig_target': orig_target,
+        'final_target': target,
+        'rows': rows,
+        'cols': cols,
+        'dart_code': dart_code,
+        'arrows': arrows
+    }
 
 
 def main():
@@ -317,63 +511,71 @@ def main():
         {'name': '보통',       'ch': 2, 'lo': 15,  'hi': 25},
         {'name': '어려움',     'ch': 3, 'lo': 30,  'hi': 50},
         {'name': '매우어려움', 'ch': 4, 'lo': 60,  'hi': 90},
+        {'name': '악몽',       'ch': 5, 'lo': 60,  'hi': 90, 'special': True},
     ]
+
+    print("🚀 퍼즐 생성을 시작합니다... (특수 도형 및 멀티프로세싱 도입)", file=sys.stderr)
+
+    tasks = []
+    global_id = 1
+    for diff in difficulty_ranges:
+        cn = diff['ch']
+        for level_idx in range(LEVELS_PER_CHAPTER):
+            target = rp(diff['lo'], diff['hi'])
+            
+            mask_type = None
+            if diff.get('special'):
+                mask_type = rng.choice(list(MASKS_ASCII.keys()))
+                
+            tasks.append({
+                'global_id': global_id,
+                'cn': cn,
+                'diff_name': diff['name'],
+                'target': target,
+                'level_idx': level_idx,
+                'seed': rng.randint(0, 2**32 - 1),
+                'mask_type': mask_type
+            })
+            global_id += 1
+
+    results = []
+    # 프로세스 기반 병렬 처리
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        future_to_task = {executor.submit(generate_level_worker, t): t for t in tasks}
+        for future in concurrent.futures.as_completed(future_to_task):
+            res = future.result()
+            results.append(res)
+            # 완료된 작업 출력
+            adj = f" (adj {res['orig_target']}→{res['final_target']})" if res['final_target'] != res['orig_target'] else ""
+            print(f" ✓ [Ch {res['cn']} - {res['diff_name']}] #{res['level_idx']+1} : {res['rows']}×{res['cols']} {len(res['arrows'])}p{adj}", file=sys.stderr)
+
+    # global_id 순으로 결과 정렬
+    results.sort(key=lambda x: x['global_id'])
 
     code = ["import '../models/level_data.dart';", "import '../core/constants.dart';", ""]
 
-    global_id = 1  # 전체 레벨 ID (1~80)
-
-    for di, diff in enumerate(difficulty_ranges):
-        cn = di + 1
-        print(f"\n{'='*50}", file=sys.stderr)
-        print(f"📦 Chapter {cn} - {diff['name']} ({LEVELS_PER_CHAPTER}개 생성 중...)", file=sys.stderr)
-        print(f"{'='*50}", file=sys.stderr)
-
-        code.append(f"/// Chapter {cn} - {diff['name']}")
+    for cn, group in groupby(results, key=lambda x: x['cn']):
+        diff_name = next((d['name'] for d in difficulty_ranges if d['ch'] == cn), "Unknown")
+        code.append(f"/// Chapter {cn} - {diff_name}")
         code.append(f"final List<LevelData> chapter{cn}Levels = [")
-
-        for level_idx in range(LEVELS_PER_CHAPTER):
-            target = rp(diff['lo'], diff['hi'])
-            orig = target
-
-            print(f"  🎯 [{level_idx+1}/{LEVELS_PER_CHAPTER}] {diff['name']} ({target}p): ",
-                  end='', flush=True, file=sys.stderr)
-
-            result = None
-            outer = 0
-            while result is None:
-                result = generate_level(target, rng)
-                outer += 1
-                if outer % 3 == 0:
-                    print('.', end='', flush=True, file=sys.stderr)
-                if result is None and outer % 10 == 0 and target > 10:
-                    reduced = max(10, int(target * 0.9))
-                    print(f"\n     ⚠️ {target}→{reduced}", file=sys.stderr, flush=True)
-                    print('     ', end='', file=sys.stderr, flush=True)
-                    target = reduced
-
-            rows, cols, arrows = result
-            ds = {'↑': 0, '↓': 0, '←': 0, '→': 0}
-            for a in arrows:
-                ds[DIR_NAMES.get(a['dir'], '?')] = ds.get(DIR_NAMES.get(a['dir'], '?'), 0) + 1
-            adj = f" (adj {orig}→{target})" if target != orig else ""
-            print(f" ✓ {rows}×{cols} {len(arrows)}p{adj}", file=sys.stderr)
-
-            code.append(gen_dart(global_id, cn, rows, cols, arrows))
-            global_id += 1
-
+        for res in group:
+            code.append(res['dart_code'])
         code.append("];")
         code.append("")
 
-    # Chapter 5 - Coming Soon (빈 리스트)
-    code.append("/// Chapter 5 - 악몽 (Coming Soon)")
-    code.append("final List<LevelData> chapter5Levels = [];")
-    code.append("")
 
-    with open(os.path.join('lib', 'data', 'levels.dart'), 'w', encoding='utf-8') as f:
+
+    # 절대 경로 계산 (bin/puzzle_generator.py -> .. -> lib/data/levels.dart)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    output_path = os.path.join(project_root, 'lib', 'data', 'levels.dart')
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(code) + '\n')
 
     print(f"\n✅ Done! {global_id - 1}개 레벨 생성 완료!", file=sys.stderr)
+    print(f"💾 저장 경로: {output_path}", file=sys.stderr)
 
 
 if __name__ == '__main__':
