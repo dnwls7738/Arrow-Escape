@@ -294,7 +294,8 @@ def simulate_escape(chain, direction, my_id, active_ids, grid, rows, cols):
     """
     sim = list(chain)
     dr, dc = direction
-    max_steps = rows + cols + len(chain) # 탈출구는 그리드 크기를 넘지 않음 (최적화)
+    # 맵의 모든 타일을 훑는 최악의 경우를 상정해도 (rows*cols) 이상 갈 수 없음
+    max_steps = rows * cols + 10 
 
     for _ in range(max_steps):
         hr, hc = sim[-1]
