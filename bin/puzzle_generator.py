@@ -336,7 +336,8 @@ def solve_puzzle(paths, rows, cols, grid):
     
     # 교착 방지를 위한 while 루트
     stuck_counter = 0
-    max_iter = len(paths) * 2 # 너무 오랫동안 못 풀면 어차피 버려야 할 맵
+    # 엄격한 빠른 포기(Fast-fail) 타임아웃: 뱀 개수 * 1.5 턴 안에 못풀면 너무 복잡해서 연산 포기 (버림)
+    max_iter = int(len(paths) * 1.5) + 3
     
     while active_ids:
         escaped_this_turn = []
@@ -358,6 +359,7 @@ def solve_puzzle(paths, rows, cols, grid):
         moves += 1
         stuck_counter += 1
         if stuck_counter > max_iter:
+            # 타임아웃 
             return False, 0
 
     return True, score
