@@ -16,14 +16,9 @@ class AudioManager {
   Future<void> init() async {
     if (_initialized) return;
     try {
-      // AudioPool 대신 단순 캐시에만 로드하여 버퍼 고갈 방지
-      await FlameAudio.audioCache.loadAll([
-        'shoot.ogg',
-        'blocked.ogg',
-        'clear.ogg',
-        'click.ogg',
-        'undo.ogg',
-      ]);
+      // 에뮬레이터에서 오디오 캐싱(loadAll) 시 JVM이 터지는 현상을 방지하기 위해
+      // 여기서 미리 로드하지 않고, 첫 재생 시점(FlameAudio.play)에서 
+      // 지연 로딩되도록 변경합니다. (Lazy Loading)
       _initialized = true;
     } catch (e) {
       Logger.log('AudioManager init warning: $e');
