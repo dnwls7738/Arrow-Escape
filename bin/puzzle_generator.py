@@ -366,7 +366,20 @@ def orient_and_verify(chains, rows, cols, rng, mask_grid=None):
 
     paths = list(result.values())
 
-    # 시각적 직관성 검사 (30개 미만만)
+    # 1. 자가 교착 오류 방지 검사 (모든 난이도 / 모든 경로 개수에서 필수 적용)
+    # 화살표 머리가 자기 자신의 꼬리(몸통)를 바라보고 있으면 풀 수 없게 되므로 엄격하게 타파
+    for p in paths:
+        segs = p['segs']
+        if len(segs) < 2:
+            continue
+        hr, hc = segs[-1]
+        dr, dc = p['dir']
+        face = (hr + dr, hc + dc)
+        
+        if face in set(segs):
+            return None
+
+    # 2. 시각적 직관성 및 마주보기 교착 방지 검사 (경로 30개 미만인 비교적 널널한 맵에서 적용)
     if len(paths) < 30:
         for p in paths:
             segs = p['segs']
@@ -375,9 +388,6 @@ def orient_and_verify(chains, rows, cols, rng, mask_grid=None):
             hr, hc = segs[-1]
             dr, dc = p['dir']
             face = (hr + dr, hc + dc)
-
-            if face in set(segs):
-                return None
 
             for other in paths:
                 if other['id'] == p['id'] or len(other['segs']) < 2:
