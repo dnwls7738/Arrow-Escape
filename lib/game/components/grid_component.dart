@@ -1,6 +1,5 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import '../../core/constants.dart';
 import '../../data/settings_manager.dart';
 
 /// 배경 그리드를 그리는 컴포넌트

@@ -27,5 +27,4 @@ class UserManager {
     }
   }
 
-  // TODO(Phase 2): 구글/애플 로그인 기능 및 클라우드 동기화(Merge) 메서드 추가 예정
 }

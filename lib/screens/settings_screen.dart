@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../core/constants.dart';
 import '../data/settings_manager.dart';
 import '../data/score_manager.dart';
-import '../data/user_manager.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_save_service.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';

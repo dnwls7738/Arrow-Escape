@@ -1,7 +1,5 @@
 import '../core/constants.dart';
 
-import '../core/constants.dart';
-
 /// 2D 그리드 위의 한 지점(행, 열)
 class Coordinate {
   final int row;

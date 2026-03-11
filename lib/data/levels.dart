@@ -1,5 +1,4 @@
 import '../models/level_data.dart';
-import '../core/constants.dart';
 
 /// Chapter 1 - 쉬움
 final List<LevelData> chapter1Levels = [
