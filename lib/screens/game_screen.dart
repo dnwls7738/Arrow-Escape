@@ -10,7 +10,6 @@ import '../data/haptic_manager.dart';
 import '../data/ad_manager.dart';
 import '../game/arrow_puzzle_game.dart';
 import '../models/level_data.dart';
-import '../data/levels.dart';
 import '../data/level_service.dart';
 import '../data/providers.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
