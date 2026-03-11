@@ -1,18 +1,51 @@
 {
   "@@locale": "ko",
-  "appTitle": "애로우 퍼즐 이스케이프",
+  "appTitle": "ARROW ESCAPE",
 
   "menuPlay": "게임 시작",
-  "menuLevelSelect": "레벨 선택",
   "menuSettings": "설정",
 
   "settingsTitle": "설정",
-  "settingsHaptic": "진동 (Haptic)",
+  "settingsGameDisplay": "게임 및 디스플레이",
+  "settingsAccountData": "계정 및 데이터",
+  "settingsHaptic": "진동 피드백",
   "settingsSfx": "효과음 (SFX)",
   "settingsBgm": "배경음악 (BGM)",
-  "settingsDots": "배경 닷 포인트 표시",
+  "settingsDots": "배경 도트 표시",
   "settingsLanguage": "언어 (Language)",
-  "settingsClose": "닫기",
+
+  "playingAsGuest": "게스트로 플레이 중",
+  "guestDescription": "진행 상황이 기기에 저장됩니다.\n로그인하면 클라우드에 동기화할 수 있어요!",
+  "signInGoogle": "Google로 로그인",
+  "signingIn": "로그인 중...",
+  "signInSuccess": "로그인 성공! 동기화 중...",
+  "accountRestored": "다시 오신 것을 환영합니다! 삭제된 계정이 복구되었습니다. ♻️",
+  "progressSynced": "진행 상황 동기화 완료! ✅",
+  "signInApple": "Apple로 로그인",
+  "appleSignInSoon": "Apple 로그인은 곧 지원됩니다!",
+  "googleAccount": "Google 계정",
+  "connected": "연결됨",
+  "forceUpdateCloud": "클라우드에서 강제 업데이트",
+  "downloadingProgress": "진행 상황 다운로드 중...",
+  "downloadComplete": "다운로드 완료!",
+  "signOut": "로그아웃",
+  "signedOut": "로그아웃 되었습니다.",
+  "deleteAccount": "계정 삭제",
+  "resetAllProgress": "모든 진행 초기화",
+
+  "resetProgressTitle": "진행 초기화",
+  "resetProgressMsg": "모든 레벨 기록과 별을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.",
+  "cancel": "취소",
+  "delete": "삭제",
+  "allProgressReset": "모든 진행 상황이 초기화되었습니다.",
+
+  "deleteAccountTitle": "계정 삭제",
+  "deleteAccountMsg": "다음 항목이 영구적으로 삭제됩니다:\n• Google 계정 연동\n• 모든 클라우드 저장 데이터\n• 모든 로컬 데이터\n\n이 작업은 되돌릴 수 없습니다.",
+  "deleteAccountBtn": "계정 삭제",
+  "deletingAccount": "계정 삭제 중...",
+  "reauthPrompt": "삭제를 확인하려면 다시 로그인해 주세요.",
+  "reauthCancelled": "재인증이 취소되었습니다.",
+  "accountDeleted": "계정이 삭제되었습니다. 게스트로 플레이합니다.",
 
   "levelSelectTitle": "레벨 선택",
   "chapterName": "챕터 {chapterIndex}",
@@ -23,8 +56,9 @@
       }
     }
   },
-  "levelLocked": "잠김",
-  "levelNumber": "Lv. {levelId}",
+  "comingSoon": "준비 중",
+  "comingSoonDesc": "새로운 레벨이 곧 추가됩니다.",
+  "levelNumber": "Level {levelId}",
   "@levelNumber": {
     "placeholders": {
       "levelId": {
@@ -34,21 +68,32 @@
   },
 
   "gameHint": "힌트",
+  "hintAdPrompt": "짧은 광고를 시청하고 힌트를 받으시겠어요?\n다음에 발사할 수 있는 화살표가 빛납니다!",
+  "watchAd": "광고 보기",
+  "hintRewardMsg": "💡 힌트: 빛나는 화살표를 발사하세요!",
+  "hintFreeMsg": "💡 무료 힌트! (광고 준비 안 됨)",
   "gameUndo": "되돌리기",
-  "gameOver": "게임 오버",
-  "gameNoHeartsMsg": "하트를 모두 소진했습니다!",
   "gameRestart": "다시하기",
-  "gameMenu": "메뉴",
-  "gameClear": "레벨 클리어!",
-  "gameNextLevel": "다음 레벨",
+  "gameOver": "실패",
+  "gameNoHeartsMsg": "하트를 모두 소진했습니다!\n처음부터 다시 시도해 보세요.",
+  "gameClear": "클리어!",
+  "gameNextLevel": "다음",
+  "remainingHearts": "남은 하트: {hearts} / 3",
+  "@remainingHearts": {
+    "placeholders": {
+      "hearts": {
+        "type": "int"
+      }
+    }
+  },
 
   "tutorialSkip": "건너뛰기",
   "tutorialNext": "다음",
-  "tutorialStart": "시작하기",
+  "tutorialStart": "시작하기!",
   "tutorialPage1Title": "화살표 터치",
-  "tutorialPage1Desc": "화살표를 터치해 보드 밖으로 탈출시키세요.\n하지만 조심해야 합니다!",
+  "tutorialPage1Desc": "화살표를 터치해 보드 밖으로 탈출시키세요.\n화살표가 가리키는 방향으로 날아갑니다!",
   "tutorialPage2Title": "경로 확인",
-  "tutorialPage2Desc": "앞길이 뚫려 있어야만 나갈 수 있습니다.\n다른 화살표에 막히면 하트를 잃습니다.",
+  "tutorialPage2Desc": "앞길이 뚫려 있어야만 나갈 수 있습니다.\n다른 화살표에 막히면 하트를 잃습니다!",
   "tutorialPage3Title": "퍼즐 클리어",
   "tutorialPage3Desc": "순서를 고민하고, 모든 화살표를 탈출시켜\n레벨을 클리어 하세요!"
 }

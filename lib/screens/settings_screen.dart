@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             children: [
-              _buildSectionTitle('GAME AND DISPLAY'),
+              _buildSectionTitle(AppLocalizations.of(context)!.settingsGameDisplay),
               _buildSwitchCard(
                 title: AppLocalizations.of(context)!.settingsSfx,
                 icon: Icons.music_note,
@@ -100,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               
               const SizedBox(height: 32),
-              _buildSectionTitle('ACCOUNT & DATA'),
+              _buildSectionTitle(AppLocalizations.of(context)!.settingsAccountData),
               
               StreamBuilder<User?>(
                 stream: AuthService().authStateChanges,
@@ -128,7 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   const Icon(Icons.person_outline, color: AppColors.neonPurple),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Playing as Guest',
+                                    AppLocalizations.of(context)!.playingAsGuest,
                                     style: TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 16,
@@ -139,7 +139,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Progress is saved locally.\nSign in to sync your progress!',
+                                AppLocalizations.of(context)!.guestDescription,
                                 style: TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 12,
@@ -151,12 +151,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 16),
                          _buildActionButton(
-                          title: 'Sign in with Google',
+                          title: AppLocalizations.of(context)!.signInGoogle,
                           icon: Icons.g_mobiledata,
                           color: Colors.white,
                           onTap: () async {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Signing in...')),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.signingIn)),
                             );
                             final result = await AuthService().signInWithGoogle();
                             if (!context.mounted) return;
@@ -171,17 +171,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                             } else if (result != null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Successfully signed in! Syncing...')),
+                                SnackBar(content: Text(AppLocalizations.of(context)!.signInSuccess)),
                               );
                               
                               // ⓪ 삭제된 계정인지 확인하고 30일 이내면 자동 복구
                               final restored = await CloudSaveService().checkAndRestoreUser();
                               if (restored && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Welcome back! Your deleted account has been restored. ♻️'),
+                                  SnackBar(
+                                    content: Text(AppLocalizations.of(context)!.accountRestored),
                                     backgroundColor: AppColors.neonGreen,
-                                    duration: Duration(seconds: 4),
+                                    duration: const Duration(seconds: 4),
                                   ),
                                 );
                               }
@@ -192,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               await CloudSaveService().uploadProgress();
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Progress synced! ✅')),
+                                  SnackBar(content: Text(AppLocalizations.of(context)!.progressSynced)),
                                 );
                               }
                             }
@@ -200,12 +200,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 16),
                         _buildActionButton(
-                          title: 'Sign in with Apple',
+                          title: AppLocalizations.of(context)!.signInApple,
                           icon: Icons.apple,
                           color: Colors.white,
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Apple Sign-In is coming soon!')),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.appleSignInSoon)),
                             );
                           },
                         ),
@@ -231,7 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   const Icon(Icons.check_circle, color: AppColors.neonCyan),
                                   const SizedBox(width: 8),
                                   Text(
-                                    user.displayName ?? 'Google Account',
+                                    user.displayName ?? AppLocalizations.of(context)!.googleAccount,
                                     style: TextStyle(
                                       color: AppColors.textPrimary,
                                       fontSize: 16,
@@ -242,7 +242,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                user.email ?? 'Connected',
+                                user.email ?? AppLocalizations.of(context)!.connected,
                                 style: TextStyle(
                                   color: AppColors.textMuted,
                                   fontSize: 12,
@@ -253,38 +253,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         const SizedBox(height: 16),
                         _buildActionButton(
-                          title: 'Force Update from Cloud',
+                          title: AppLocalizations.of(context)!.forceUpdateCloud,
                           icon: Icons.cloud_download,
                           color: AppColors.neonCyan,
                           onTap: () async {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Downloading progress...')),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.downloadingProgress)),
                             );
                             await CloudSaveService().downloadProgress();
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Download complete!')),
+                                SnackBar(content: Text(AppLocalizations.of(context)!.downloadComplete)),
                               );
                             }
                           },
                         ),
                         const SizedBox(height: 16),
                         _buildActionButton(
-                          title: 'Sign Out',
+                          title: AppLocalizations.of(context)!.signOut,
                           icon: Icons.logout,
                           color: Colors.redAccent,
                           onTap: () async {
                             await AuthService().signOut();
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Signed out.')),
+                                SnackBar(content: Text(AppLocalizations.of(context)!.signedOut)),
                               );
                             }
                           },
                         ),
                         const SizedBox(height: 16),
                         _buildActionButton(
-                          title: 'Delete Account',
+                          title: AppLocalizations.of(context)!.deleteAccount,
                           icon: Icons.person_remove,
                           color: Colors.red,
                           onTap: () => _showDeleteAccountDialog(context),
@@ -301,9 +301,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               OutlinedButton.icon(
                 onPressed: () => _showResetDialog(context),
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                label: const Text(
-                  'RESET ALL PROGRESS',
-                  style: TextStyle(color: Colors.redAccent, letterSpacing: 1.2),
+                label: Text(
+                  AppLocalizations.of(context)!.resetAllProgress,
+                  style: const TextStyle(color: Colors.redAccent, letterSpacing: 1.2),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.redAccent),
@@ -403,15 +403,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
-        title: const Text('Reset Progress', style: TextStyle(color: Colors.redAccent)),
+        title: Text(AppLocalizations.of(context)!.resetProgressTitle, style: const TextStyle(color: Colors.redAccent)),
         content: Text(
-          'Are you sure you want to delete all your level records and stars?\nThis action cannot be undone.',
+          AppLocalizations.of(context)!.resetProgressMsg,
           style: TextStyle(color: AppColors.textPrimary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
@@ -420,11 +420,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               await ScoreManager().resetAll();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All progress has been reset.')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.allProgressReset)),
                 );
               }
             },
-            child: const Text('DELETE', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -436,19 +436,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
-        title: const Text('Delete Account', style: TextStyle(color: Colors.red)),
+        title: Text(AppLocalizations.of(context)!.deleteAccountTitle, style: const TextStyle(color: Colors.red)),
         content: Text(
-          'This will permanently delete:\n'
-          '• Your Google account link\n'
-          '• All cloud-saved progress\n'
-          '• All local data\n\n'
-          'This action CANNOT be undone.',
+          AppLocalizations.of(context)!.deleteAccountMsg,
           style: TextStyle(color: AppColors.textPrimary, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -456,7 +452,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(ctx);
               await _performAccountDeletion(context);
             },
-            child: const Text('DELETE ACCOUNT', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.deleteAccountBtn, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -467,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Deleting account...')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.deletingAccount)),
     );
 
     // ① Firestore 유저 데이터 삭제
@@ -480,15 +476,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       // 재인증 필요 → 구글 재로그인 요청
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in again to confirm deletion.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.reauthPrompt)),
       );
       
       final reauthOk = await AuthService().reauthenticateWithGoogle();
       if (!reauthOk) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Re-authentication cancelled.'),
+            SnackBar(
+               content: Text(AppLocalizations.of(context)!.reauthCancelled),
               backgroundColor: Colors.redAccent,
             ),
           );
@@ -520,7 +516,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account deleted. Playing as guest.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.accountDeleted)),
       );
       setState(() {}); // UI 갱신
     }

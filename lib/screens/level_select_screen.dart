@@ -75,7 +75,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'COMING SOON',
+                        AppLocalizations.of(context)!.comingSoon,
                         style: GoogleFonts.outfit(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -85,7 +85,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '새로운 악몽 난이도가 곧 추가됩니다.',
+                        AppLocalizations.of(context)!.comingSoonDesc,
                         style: GoogleFonts.notoSans(
                           fontSize: 14,
                           color: AppColors.textMuted,

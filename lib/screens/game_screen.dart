@@ -138,14 +138,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
              Text(AppLocalizations.of(context)!.gameHint, style: const TextStyle(color: AppColors.textPrimary)),
            ],
          ),
-         content: const Text(
-           'Watch a short ad to get a hint?\nThe next available arrow will glow!',
-           style: TextStyle(color: AppColors.textSecondary),
+         content: Text(
+           AppLocalizations.of(context)!.hintAdPrompt,
+           style: const TextStyle(color: AppColors.textSecondary),
          ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: TextStyle(color: AppColors.textMuted)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: TextStyle(color: AppColors.textMuted)),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -158,7 +158,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               _showRewardedAd();
             },
             icon: const Icon(Icons.play_arrow, size: 18),
-            label: const Text('Watch Ad'),
+            label: Text(AppLocalizations.of(context)!.watchAd),
           ),
         ],
       ),
@@ -173,7 +173,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('💡 Hint: The glowing arrow can be fired!'),
+              content: Text(AppLocalizations.of(context)!.hintRewardMsg),
               backgroundColor: AppColors.neonPurple.withValues(alpha: 0.8),
               duration: const Duration(seconds: 2),
             ),
@@ -186,7 +186,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('💡 Free hint! (Ad not ready)'),
+              content: Text(AppLocalizations.of(context)!.hintFreeMsg),
               backgroundColor: AppColors.neonGreen.withValues(alpha: 0.8),
               duration: const Duration(seconds: 2),
             ),
@@ -458,7 +458,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Remaining Hearts: $_hearts / 3',
+                      AppLocalizations.of(context)!.remainingHearts(_hearts),
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         color: AppColors.textSecondary,

@@ -1,21 +1,54 @@
 {
   "@@locale": "en",
-  "appTitle": "Arrow Puzzle Escape",
+  "appTitle": "ARROW ESCAPE",
 
   "menuPlay": "PLAY",
-  "menuLevelSelect": "LEVEL SELECT",
   "menuSettings": "SETTINGS",
 
   "settingsTitle": "SETTINGS",
-  "settingsHaptic": "Haptic",
+  "settingsGameDisplay": "GAME AND DISPLAY",
+  "settingsAccountData": "ACCOUNT & DATA",
+  "settingsHaptic": "Haptic Feedback",
   "settingsSfx": "Sound Effects (SFX)",
   "settingsBgm": "Background Music (BGM)",
   "settingsDots": "Show Background Dots",
   "settingsLanguage": "Language",
-  "settingsClose": "Close",
+
+  "playingAsGuest": "Playing as Guest",
+  "guestDescription": "Progress is saved locally.\nSign in to sync your progress!",
+  "signInGoogle": "Sign in with Google",
+  "signingIn": "Signing in...",
+  "signInSuccess": "Successfully signed in! Syncing...",
+  "accountRestored": "Welcome back! Your deleted account has been restored. ♻️",
+  "progressSynced": "Progress synced! ✅",
+  "signInApple": "Sign in with Apple",
+  "appleSignInSoon": "Apple Sign-In is coming soon!",
+  "googleAccount": "Google Account",
+  "connected": "Connected",
+  "forceUpdateCloud": "Force Update from Cloud",
+  "downloadingProgress": "Downloading progress...",
+  "downloadComplete": "Download complete!",
+  "signOut": "Sign Out",
+  "signedOut": "Signed out.",
+  "deleteAccount": "Delete Account",
+  "resetAllProgress": "RESET ALL PROGRESS",
+
+  "resetProgressTitle": "Reset Progress",
+  "resetProgressMsg": "Are you sure you want to delete all your level records and stars?\nThis action cannot be undone.",
+  "cancel": "Cancel",
+  "delete": "DELETE",
+  "allProgressReset": "All progress has been reset.",
+
+  "deleteAccountTitle": "Delete Account",
+  "deleteAccountMsg": "This will permanently delete:\n• Your Google account link\n• All cloud-saved progress\n• All local data\n\nThis action CANNOT be undone.",
+  "deleteAccountBtn": "DELETE ACCOUNT",
+  "deletingAccount": "Deleting account...",
+  "reauthPrompt": "Please sign in again to confirm deletion.",
+  "reauthCancelled": "Re-authentication cancelled.",
+  "accountDeleted": "Account deleted. Playing as guest.",
 
   "levelSelectTitle": "SELECT LEVEL",
-  "chapterName": "Chapter {chapterIndex}",
+  "chapterName": "CHAPTER {chapterIndex}",
   "@chapterName": {
     "placeholders": {
       "chapterIndex": {
@@ -23,8 +56,9 @@
       }
     }
   },
-  "levelLocked": "Locked",
-  "levelNumber": "Lv. {levelId}",
+  "comingSoon": "COMING SOON",
+  "comingSoonDesc": "New nightmare levels coming soon.",
+  "levelNumber": "Level {levelId}",
   "@levelNumber": {
     "placeholders": {
       "levelId": {
@@ -34,21 +68,32 @@
   },
 
   "gameHint": "Hint",
+  "hintAdPrompt": "Watch a short ad to get a hint?\nThe next available arrow will glow!",
+  "watchAd": "Watch Ad",
+  "hintRewardMsg": "💡 Hint: The glowing arrow can be fired!",
+  "hintFreeMsg": "💡 Free hint! (Ad not ready)",
   "gameUndo": "Undo",
-  "gameOver": "Game Over",
-  "gameNoHeartsMsg": "You ran out of hearts!",
   "gameRestart": "Restart",
-  "gameMenu": "Menu",
-  "gameClear": "Level Clear!",
-  "gameNextLevel": "Next Level",
+  "gameOver": "FAILED",
+  "gameNoHeartsMsg": "Out of hearts!\nTry again from the start.",
+  "gameClear": "CLEAR!",
+  "gameNextLevel": "Next",
+  "remainingHearts": "Remaining Hearts: {hearts} / 3",
+  "@remainingHearts": {
+    "placeholders": {
+      "hearts": {
+        "type": "int"
+      }
+    }
+  },
 
-  "tutorialSkip": "SKIP",
-  "tutorialNext": "NEXT",
-  "tutorialStart": "START",
-  "tutorialPage1Title": "Tap the Arrow",
-  "tutorialPage1Desc": "Tap an arrow to shoot it out of the board.\nBut be careful!",
-  "tutorialPage2Title": "Watch the Path",
-  "tutorialPage2Desc": "Arrows can only escape if their path is clear.\nIf blocked by another arrow, you lose a heart.",
-  "tutorialPage3Title": "Clear the Board",
-  "tutorialPage3Desc": "Think ahead, find the right order,\nand free all arrows to clear the level!"
+  "tutorialSkip": "Skip",
+  "tutorialNext": "Next",
+  "tutorialStart": "Let's Play!",
+  "tutorialPage1Title": "Tap to Fire",
+  "tutorialPage1Desc": "Tap an arrow to fire it off the board.\nThe arrow flies in the direction it points.",
+  "tutorialPage2Title": "Watch for Blocks",
+  "tutorialPage2Desc": "An arrow can only fire if there's\nnothing blocking its path.\nBlocked lines will shake!",
+  "tutorialPage3Title": "Clear & Earn Stars",
+  "tutorialPage3Desc": "Remove ALL arrows to clear the level.\nFewer mistakes = more stars! ⭐⭐⭐\nUse Undo and Hint if you get stuck."
 }
