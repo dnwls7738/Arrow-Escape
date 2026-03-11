@@ -9,7 +9,7 @@ import 'screens/main_menu_screen.dart';
 import 'screens/tutorial_screen.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrow_escape/l10n/app_localizations.dart';
 
 import 'data/user_manager.dart';
 import 'data/score_manager.dart';

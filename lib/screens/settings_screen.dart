@@ -8,7 +8,7 @@ import '../data/score_manager.dart';
 import '../data/user_manager.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_save_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrow_escape/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

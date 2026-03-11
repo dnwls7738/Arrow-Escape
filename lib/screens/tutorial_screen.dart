@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrow_escape/l10n/app_localizations.dart';
 
 /// 첫 실행 시 게임 규칙을 안내하는 온보딩 튜토리얼 화면
 class TutorialScreen extends StatefulWidget {

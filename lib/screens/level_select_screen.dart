@@ -5,7 +5,7 @@ import '../data/level_service.dart';
 import '../data/score_manager.dart';
 import '../models/level_data.dart';
 import 'game_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrow_escape/l10n/app_localizations.dart';
 
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});

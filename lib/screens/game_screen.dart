@@ -11,7 +11,7 @@ import '../game/arrow_puzzle_game.dart';
 import '../models/level_data.dart';
 import '../data/levels.dart'; // Ensure it's here
 import '../data/level_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:arrow_escape/l10n/app_localizations.dart';
 
 class GameScreen extends StatefulWidget {
   final LevelData levelData;
