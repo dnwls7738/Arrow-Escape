@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
-import 'level_select_screen.dart';
-import 'settings_screen.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
 class MainMenuScreen extends ConsumerStatefulWidget {
