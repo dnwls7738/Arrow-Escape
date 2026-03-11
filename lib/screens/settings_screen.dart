@@ -74,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 child: ListTile(
                   title: Text(AppLocalizations.of(context)!.settingsLanguage, style: const TextStyle(color: AppColors.textPrimary)),
-                  secondary: const Icon(Icons.language, color: AppColors.textMuted),
+                  leading: const Icon(Icons.language, color: AppColors.textMuted),
                   trailing: SegmentedButton<String>(
                     segments: const [
                       ButtonSegment<String>(
