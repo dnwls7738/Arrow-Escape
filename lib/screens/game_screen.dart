@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flame/game.dart' hide Matrix4;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import '../data/score_manager.dart';
@@ -212,7 +213,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
         });
         _game.loadNewLevel(_currentLevelData);
       } else {
-        Navigator.of(context).pop();
+        context.pop();
       }
     }
 
@@ -288,7 +289,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStat
           IconButton(
             icon: const Icon(Icons.arrow_back_ios_rounded,
                 color: AppColors.textSecondary, size: 20),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
           ),
           const Spacer(),
           // 레벨 번호

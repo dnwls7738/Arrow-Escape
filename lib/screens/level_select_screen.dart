@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import '../data/level_service.dart';
-import '../data/score_manager.dart';
 import '../models/level_data.dart';
 import '../data/providers.dart';
-import 'game_screen.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
 class LevelSelectScreen extends ConsumerStatefulWidget {
@@ -31,7 +30,7 @@ class _LevelSelectScreenState extends ConsumerState<LevelSelectScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_rounded,
                 color: AppColors.textSecondary),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.pop(),
           ),
           title: Text(
             AppLocalizations.of(context)!.levelSelectTitle,
@@ -117,16 +116,7 @@ class _LevelSelectScreenState extends ConsumerState<LevelSelectScreen> {
                           level: level,
                           stars: stars,
                           onTap: () {
-                            Navigator.of(context).push(
-                              PageRouteBuilder(
-                                pageBuilder: (_, __, ___) =>
-                                    GameScreen(levelData: level),
-                                transitionsBuilder: (_, anim, __, child) {
-                                  return FadeTransition(opacity: anim, child: child);
-                                },
-                                transitionDuration: const Duration(milliseconds: 300),
-                              ),
-                            );
+                            context.push('/game', extra: level);
                           },
                         );
                       },

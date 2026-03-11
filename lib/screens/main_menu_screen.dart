@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import 'level_select_screen.dart';
@@ -95,17 +96,7 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
                   icon: Icons.play_arrow_rounded,
                   color: AppColors.neonCyan,
                   onTap: () {
-                    Navigator.of(context).push(
-                      PageRouteBuilder(
-                        pageBuilder: (_, __, ___) =>
-                            const LevelSelectScreen(),
-                        transitionsBuilder: (_, anim, __, child) {
-                          return FadeTransition(opacity: anim, child: child);
-                        },
-                        transitionDuration:
-                            const Duration(milliseconds: 300),
-                      ),
-                    );
+                    context.push('/levels');
                   },
                 ),
                 const SizedBox(height: 16),
@@ -114,15 +105,7 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
                   icon: Icons.settings_rounded,
                   color: AppColors.textSecondary,
                   onTap: () {
-                    Navigator.of(context).push(
-                      PageRouteBuilder(
-                        pageBuilder: (_, __, ___) => const SettingsScreen(),
-                        transitionsBuilder: (_, anim, __, child) {
-                          return FadeTransition(opacity: anim, child: child);
-                        },
-                        transitionDuration: const Duration(milliseconds: 300),
-                      ),
-                    );
+                    context.push('/settings');
                   },
                   small: true,
                 ),

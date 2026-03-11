@@ -3,11 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/logger.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/constants.dart';
-import 'screens/main_menu_screen.dart';
-import 'screens/tutorial_screen.dart';
+import 'core/app_router.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
@@ -49,7 +47,7 @@ void main() async {
     CloudSaveService().uploadProgress();
   }
   
-  // Firestore에서 레벨 로딩 (실패 시 로컬 폴백)
+  // JSON 에셋에서 레벨 로딩
   await LevelService().init();
   
   // 설정 변경 시 오디오 매니저에 알림
@@ -57,6 +55,9 @@ void main() async {
   
   // BGM 시작 (앱 전체에서 한 번만)
   AudioManager().startBgm();
+  
+  // GoRouter 초기화
+  await AppRouter.init();
   
   // 상태바 투명, 다크 모드
   SystemChrome.setSystemUIOverlayStyle(
@@ -82,8 +83,9 @@ class ArrowEscapeApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+    return MaterialApp.router(
+      routerConfig: AppRouter.router,
+      title: 'ARROW ESCAPE',
       debugShowCheckedModeBanner: false,
       
       // Localization Setup
@@ -110,53 +112,6 @@ class ArrowEscapeApp extends ConsumerWidget {
           surface: AppColors.bgDark,
         ),
       ),
-      home: const _AppStarter(),
     );
-  }
-}
-
-/// 첫 실행 감지: tutorial_seen 플래그에 따라 튜토리얼 또는 메인 메뉴 표시
-class _AppStarter extends StatefulWidget {
-  const _AppStarter();
-
-  @override
-  State<_AppStarter> createState() => _AppStarterState();
-}
-
-class _AppStarterState extends State<_AppStarter> {
-  bool? _tutorialSeen;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkTutorial();
-  }
-
-  Future<void> _checkTutorial() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _tutorialSeen = prefs.getBool('tutorial_seen') ?? false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_tutorialSeen == null) {
-      // 로딩 중
-      return const Scaffold(
-        backgroundColor: AppColors.bgDark,
-        body: Center(child: CircularProgressIndicator(color: AppColors.neonCyan)),
-      );
-    }
-
-    if (!_tutorialSeen!) {
-      return TutorialScreen(
-        onComplete: () {
-          setState(() => _tutorialSeen = true);
-        },
-      );
-    }
-
-    return const MainMenuScreen();
   }
 }
