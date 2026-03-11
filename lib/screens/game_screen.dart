@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flame/game.dart' hide Matrix4;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import '../data/score_manager.dart';
@@ -11,18 +12,19 @@ import '../game/arrow_puzzle_game.dart';
 import '../models/level_data.dart';
 import '../data/levels.dart';
 import '../data/level_service.dart';
+import '../data/providers.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   final LevelData levelData;
 
   const GameScreen({super.key, required this.levelData});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
+class _GameScreenState extends ConsumerState<GameScreen> with TickerProviderStateMixin {
   late ArrowPuzzleGame _game;
   late LevelData _currentLevelData;
   int _hearts = 3;
@@ -84,7 +86,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       onLevelComplete: () {
         final stars = _game.gameState.calculateStars();
         // 클리어 처리 추가
-        ScoreManager().recordLevelClear(_currentLevelData.id, stars);
+        ref.read(scoreProvider).recordLevelClear(_currentLevelData.id, stars);
         setState(() {
           _showClearOverlay = true;
           _stars = stars;
@@ -108,8 +110,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _resetGame() {
-    AudioManager().playClick();
-    HapticManager().light();
+    ref.read(audioProvider).playClick();
+    ref.read(hapticProvider).light();
     setState(() {
       _hearts = 3;
       _showClearOverlay = false;
@@ -119,13 +121,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _undoMove() {
-    AudioManager().playUndo();
-    HapticManager().light();
+    ref.read(audioProvider).playUndo();
+    ref.read(hapticProvider).light();
     _game.undo();
   }
 
   void _showHintAdDialog() {
-    AudioManager().playClick();
+    ref.read(audioProvider).playClick();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -166,7 +168,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _showRewardedAd() {
-    AdManager().showRewardedAd(
+    ref.read(adProvider).showRewardedAd(
       onRewarded: () {
         // 광고 시청 완료 → 힌트 표시
         _game.showHint();
@@ -196,7 +198,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     );
   }
   void _nextLevel() {
-    final levels = LevelService().allLevels;
+    final levels = ref.read(levelServiceProvider).allLevels;
     final currentIndex =
         levels.indexWhere((l) => l.id == _currentLevelData.id);
         
@@ -216,9 +218,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     }
 
     // 누적 클리어 횟수가 15회 도달 시 전면 광고 표시
-    if (ScoreManager().sessionClearCount >= 15) {
-      AdManager().showInterstitialAd(onAdClosed: () {
-        ScoreManager().resetSessionClearCount(); // 시청 완료 후 카운트 초기화
+    if (ref.read(scoreProvider).sessionClearCount >= 15) {
+      ref.read(adProvider).showInterstitialAd(onAdClosed: () {
+        ref.read(scoreProvider).resetSessionClearCount(); // 시청 완료 후 카운트 초기화
         proceedToNextLevel();
       });
     } else {

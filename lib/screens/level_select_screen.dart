@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import '../data/level_service.dart';
 import '../data/score_manager.dart';
 import '../models/level_data.dart';
+import '../data/providers.dart';
 import 'game_screen.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
-class LevelSelectScreen extends StatefulWidget {
+class LevelSelectScreen extends ConsumerStatefulWidget {
   const LevelSelectScreen({super.key});
 
   @override
-  State<LevelSelectScreen> createState() => _LevelSelectScreenState();
+  ConsumerState<LevelSelectScreen> createState() => _LevelSelectScreenState();
 }
 
-class _LevelSelectScreenState extends State<LevelSelectScreen> {
-  List<List<LevelData>> get chapters => LevelService().chapters;
+class _LevelSelectScreenState extends ConsumerState<LevelSelectScreen> {
+  List<List<LevelData>> get chapters => ref.watch(levelServiceProvider).chapters;
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +110,9 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
                   itemCount: chapterLevels.length,
                   itemBuilder: (context, index) {
                     final level = chapterLevels[index];
-                    return ListenableBuilder(
-                      listenable: ScoreManager(),
-                      builder: (context, child) {
-                        final stars = ScoreManager().getStars(level.id);
+                    return Builder(
+                      builder: (context) {
+                        final stars = ref.watch(scoreProvider).getStars(level.id);
                         return _LevelCard(
                           level: level,
                           stars: stars,

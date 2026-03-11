@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../core/constants.dart';
@@ -7,16 +7,17 @@ import '../data/settings_manager.dart';
 import '../data/score_manager.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_save_service.dart';
+import '../data/providers.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,10 +28,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         centerTitle: true,
       ),
-      body: ListenableBuilder(
-        listenable: SettingsManager(),
-        builder: (context, _) {
-          final sm = SettingsManager();
+      body: Builder(
+        builder: (context) {
+          final sm = ref.watch(settingsProvider);
           return ListView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             children: [
@@ -416,7 +416,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () async {
               Navigator.pop(ctx);
-              await ScoreManager().resetAll();
+              await ref.read(scoreProvider).resetAll();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(AppLocalizations.of(context)!.allProgressReset)),
@@ -511,7 +511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     // ③ 로컬 데이터 초기화
-    await ScoreManager().resetAll();
+    await ref.read(scoreProvider).resetAll();
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

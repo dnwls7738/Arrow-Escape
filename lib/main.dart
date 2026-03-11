@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/logger.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,7 @@ import 'data/ad_manager.dart';
 import 'data/level_service.dart';
 import 'data/auth_service.dart';
 import 'data/cloud_save_service.dart';
+import 'data/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,48 +72,45 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const ArrowEscapeApp());
+  runApp(const ProviderScope(child: ArrowEscapeApp()));
 }
 
-class ArrowEscapeApp extends StatelessWidget {
+class ArrowEscapeApp extends ConsumerWidget {
   const ArrowEscapeApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: SettingsManager(),
-      builder: (context, _) {
-        return MaterialApp(
-          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-          debugShowCheckedModeBanner: false,
-          
-          // Localization Setup
-          locale: Locale(SettingsManager().languageCode),
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('ko'),
-          ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    
+    return MaterialApp(
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+      debugShowCheckedModeBanner: false,
+      
+      // Localization Setup
+      locale: Locale(settings.languageCode),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ko'),
+      ],
 
-          theme: ThemeData(
-            brightness: Brightness.dark,
-            scaffoldBackgroundColor: AppColors.bgDark,
-            textTheme: GoogleFonts.interTextTheme(
-              ThemeData.dark().textTheme,
-            ),
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.neonCyan,
-              surface: AppColors.bgDark,
-            ),
-          ),
-          home: const _AppStarter(),
-        );
-      }
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppColors.bgDark,
+        textTheme: GoogleFonts.interTextTheme(
+          ThemeData.dark().textTheme,
+        ),
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.neonCyan,
+          surface: AppColors.bgDark,
+        ),
+      ),
+      home: const _AppStarter(),
     );
   }
 }

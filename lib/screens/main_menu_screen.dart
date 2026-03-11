@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import 'level_select_screen.dart';
 import 'settings_screen.dart';
 import 'package:arrow_escape/l10n/app_localizations.dart';
 
-class MainMenuScreen extends StatefulWidget {
+class MainMenuScreen extends ConsumerStatefulWidget {
   const MainMenuScreen({super.key});
 
   @override
-  State<MainMenuScreen> createState() => _MainMenuScreenState();
+  ConsumerState<MainMenuScreen> createState() => _MainMenuScreenState();
 }
 
-class _MainMenuScreenState extends State<MainMenuScreen>
+class _MainMenuScreenState extends ConsumerState<MainMenuScreen>
     with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _bgController;
