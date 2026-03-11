@@ -1,0 +1,54 @@
+{
+  "@@locale": "en",
+  "appTitle": "Arrow Puzzle Escape",
+
+  "menuPlay": "PLAY",
+  "menuLevelSelect": "LEVEL SELECT",
+  "menuSettings": "SETTINGS",
+
+  "settingsTitle": "SETTINGS",
+  "settingsHaptic": "Haptic",
+  "settingsSfx": "Sound Effects (SFX)",
+  "settingsBgm": "Background Music (BGM)",
+  "settingsDots": "Show Background Dots",
+  "settingsLanguage": "Language",
+  "settingsClose": "Close",
+
+  "levelSelectTitle": "SELECT LEVEL",
+  "chapterName": "Chapter {chapterIndex}",
+  "@chapterName": {
+    "placeholders": {
+      "chapterIndex": {
+        "type": "int"
+      }
+    }
+  },
+  "levelLocked": "Locked",
+  "levelNumber": "Lv. {levelId}",
+  "@levelNumber": {
+    "placeholders": {
+      "levelId": {
+        "type": "int"
+      }
+    }
+  },
+
+  "gameHint": "Hint",
+  "gameUndo": "Undo",
+  "gameOver": "Game Over",
+  "gameNoHeartsMsg": "You ran out of hearts!",
+  "gameRestart": "Restart",
+  "gameMenu": "Menu",
+  "gameClear": "Level Clear!",
+  "gameNextLevel": "Next Level",
+
+  "tutorialSkip": "SKIP",
+  "tutorialNext": "NEXT",
+  "tutorialStart": "START",
+  "tutorialPage1Title": "Tap the Arrow",
+  "tutorialPage1Desc": "Tap an arrow to shoot it out of the board.\nBut be careful!",
+  "tutorialPage2Title": "Watch the Path",
+  "tutorialPage2Desc": "Arrows can only escape if their path is clear.\nIf blocked by another arrow, you lose a heart.",
+  "tutorialPage3Title": "Clear the Board",
+  "tutorialPage3Desc": "Think ahead, find the right order,\nand free all arrows to clear the level!"
+}

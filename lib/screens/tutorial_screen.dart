@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// 첫 실행 시 게임 규칙을 안내하는 온보딩 튜토리얼 화면
 class TutorialScreen extends StatefulWidget {
@@ -17,34 +18,29 @@ class _TutorialScreenState extends State<TutorialScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  static const _pages = [
-    _TutorialPage(
-      icon: Icons.touch_app_rounded,
-      title: 'Tap to Fire',
-      description:
-          'Tap an arrow to fire it off the board.\n'
-          'The arrow flies in the direction it points.',
-      color: AppColors.neonCyan,
-    ),
-    _TutorialPage(
-      icon: Icons.block_rounded,
-      title: 'Watch for Blocks',
-      description:
-          'An arrow can only fire if there\'s\n'
-          'nothing blocking its path.\n'
-          'Blocked lines will shake!',
-      color: AppColors.neonOrange,
-    ),
-    _TutorialPage(
-      icon: Icons.stars_rounded,
-      title: 'Clear & Earn Stars',
-      description:
-          'Remove ALL lines to clear the level.\n'
-          'Fewer moves = more stars! ⭐⭐⭐\n'
-          'Use Undo and Hint if you get stuck.',
-      color: AppColors.neonGreen,
-    ),
-  ];
+  List<_TutorialPage> _getPages(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _TutorialPage(
+        icon: Icons.touch_app_rounded,
+        title: l10n.tutorialPage1Title,
+        description: l10n.tutorialPage1Desc,
+        color: AppColors.neonCyan,
+      ),
+      _TutorialPage(
+        icon: Icons.block_rounded,
+        title: l10n.tutorialPage2Title,
+        description: l10n.tutorialPage2Desc,
+        color: AppColors.neonOrange,
+      ),
+      _TutorialPage(
+        icon: Icons.stars_rounded,
+        title: l10n.tutorialPage3Title,
+        description: l10n.tutorialPage3Desc,
+        color: AppColors.neonGreen,
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -52,8 +48,8 @@ class _TutorialScreenState extends State<TutorialScreen> {
     super.dispose();
   }
 
-  void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
+  void _nextPage(int totalPages) {
+    if (_currentPage < totalPages - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -90,7 +86,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 child: TextButton(
                   onPressed: _completeTutorial,
                   child: Text(
-                    'Skip',
+                    AppLocalizations.of(context)!.tutorialSkip,
                     style: GoogleFonts.inter(
                       color: AppColors.textMuted,
                       fontSize: 14,
@@ -103,12 +99,12 @@ class _TutorialScreenState extends State<TutorialScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  itemCount: _pages.length,
+                  itemCount: _getPages(context).length,
                   onPageChanged: (index) {
                     setState(() => _currentPage = index);
                   },
                   itemBuilder: (context, index) {
-                    final page = _pages[index];
+                    final page = _getPages(context)[index];
                     return _buildPage(page);
                   },
                 ),
@@ -119,7 +115,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_pages.length, (index) {
+                  children: List.generate(_getPages(context).length, (index) {
                     final isActive = index == _currentPage;
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
@@ -129,7 +125,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(4),
                         color: isActive
-                            ? _pages[_currentPage].color
+                            ? _getPages(context)[_currentPage].color
                             : AppColors.textMuted.withValues(alpha: 0.3),
                       ),
                     );
@@ -144,9 +140,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _nextPage,
+                    onPressed: () => _nextPage(_getPages(context).length),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _pages[_currentPage].color,
+                      backgroundColor: _getPages(context)[_currentPage].color,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -154,7 +150,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
                       elevation: 0,
                     ),
                     child: Text(
-                      _currentPage == _pages.length - 1 ? 'Let\'s Play!' : 'Next',
+                      _currentPage == _getPages(context).length - 1 
+                          ? AppLocalizations.of(context)!.tutorialStart 
+                          : AppLocalizations.of(context)!.tutorialNext,
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,

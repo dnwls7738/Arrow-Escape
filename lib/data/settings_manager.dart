@@ -14,12 +14,14 @@ class SettingsManager extends ChangeNotifier {
   bool _bgmEnabled = true;
   bool _hapticEnabled = true;
   bool _showGrid = true;
+  String _languageCode = 'en';
 
   // Getters
   bool get sfxEnabled => _sfxEnabled;
   bool get bgmEnabled => _bgmEnabled;
   bool get hapticEnabled => _hapticEnabled;
   bool get showGrid => _showGrid;
+  String get languageCode => _languageCode;
 
   /// 앱 구동 시 초기화
   Future<void> init() async {
@@ -29,6 +31,7 @@ class SettingsManager extends ChangeNotifier {
     _bgmEnabled = _prefs.getBool('setting_bgm') ?? true;
     _hapticEnabled = _prefs.getBool('setting_haptic') ?? true;
     _showGrid = _prefs.getBool('setting_show_grid') ?? true;
+    _languageCode = _prefs.getString('setting_language') ?? 'en';
   }
 
   // Setters (값 변경 후 즉시 저장 및 리스너 알림)
@@ -57,6 +60,13 @@ class SettingsManager extends ChangeNotifier {
     if (_showGrid == value) return;
     _showGrid = value;
     _prefs.setBool('setting_show_grid', value);
+    notifyListeners();
+  }
+
+  void setLanguageCode(String code) {
+    if (_languageCode == code) return;
+    _languageCode = code;
+    _prefs.setString('setting_language', code);
     notifyListeners();
   }
 }

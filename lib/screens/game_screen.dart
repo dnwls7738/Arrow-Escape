@@ -11,6 +11,7 @@ import '../game/arrow_puzzle_game.dart';
 import '../models/level_data.dart';
 import '../data/levels.dart'; // Ensure it's here
 import '../data/level_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GameScreen extends StatefulWidget {
   final LevelData levelData;
@@ -130,17 +131,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.bgCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.lightbulb, color: AppColors.neonPurple),
-            const SizedBox(width: 8),
-            Text('Hint', style: TextStyle(color: AppColors.textPrimary)),
-          ],
-        ),
-        content: Text(
-          'Watch a short ad to get a hint?\nThe next available arrow will glow!',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
+         title: Row(
+           children: [
+             Icon(Icons.lightbulb, color: AppColors.neonPurple),
+             const SizedBox(width: 8),
+             Text(AppLocalizations.of(context)!.gameHint, style: const TextStyle(color: AppColors.textPrimary)),
+           ],
+         ),
+         content: const Text(
+           'Watch a short ad to get a hint?\nThe next available arrow will glow!',
+           style: TextStyle(color: AppColors.textSecondary),
+         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -300,7 +301,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               ),
             ),
             child: Text(
-              'Level ${_currentLevelData.id}',
+              AppLocalizations.of(context)!.levelNumber(_currentLevelData.id),
               style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -333,19 +334,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         children: [
           _buildActionButton(
             icon: Icons.undo_rounded,
-            label: 'Undo',
+            label: AppLocalizations.of(context)!.gameUndo,
             color: AppColors.neonBlue,
             onTap: _undoMove,
           ),
           _buildActionButton(
             icon: Icons.refresh_rounded,
-            label: 'Reset',
+            label: AppLocalizations.of(context)!.gameRestart,
             color: AppColors.neonOrange,
             onTap: _resetGame,
           ),
           _buildActionButton(
             icon: Icons.lightbulb_outline_rounded,
-            label: 'Hint',
+            label: AppLocalizations.of(context)!.gameHint,
             color: AppColors.neonPurple,
             onTap: _showHintAdDialog, // 광고 시청 후 힌트 제공
           ),
@@ -430,9 +431,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'CLEAR!',
+                      AppLocalizations.of(context)!.gameClear,
                       style: GoogleFonts.outfit(
-                        fontSize: 36,
+                        fontSize: 32,
                         fontWeight: FontWeight.w800,
                         color: AppColors.neonCyan,
                         letterSpacing: 6,
@@ -469,7 +470,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       children: [
                         _buildOverlayButton(
                           icon: Icons.refresh_rounded,
-                          label: 'Retry',
+                          label: AppLocalizations.of(context)!.gameRestart,
                           color: AppColors.neonOrange,
                           onTap: () {
                             setState(() => _showClearOverlay = false);
@@ -479,7 +480,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         const SizedBox(width: 16),
                         _buildOverlayButton(
                           icon: Icons.arrow_forward_rounded,
-                          label: 'Next',
+                          label: AppLocalizations.of(context)!.gameNextLevel,
                           color: AppColors.neonCyan,
                           onTap: _nextLevel,
                         ),
@@ -574,7 +575,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'FAILED',
+                      AppLocalizations.of(context)!.gameOver,
                       style: GoogleFonts.outfit(
                         fontSize: 32,
                         fontWeight: FontWeight.w800,
@@ -584,7 +585,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Out of hearts!\nTry again from the start.',
+                      AppLocalizations.of(context)!.gameNoHeartsMsg,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 16,
@@ -594,7 +595,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     const SizedBox(height: 32),
                     _buildOverlayButton(
                       icon: Icons.refresh_rounded,
-                      label: 'Try Again',
+                      label: AppLocalizations.of(context)!.gameRestart,
                       color: AppColors.neonOrange,
                       onTap: _resetGame,
                     ),

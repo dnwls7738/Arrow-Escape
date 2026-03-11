@@ -8,6 +8,9 @@ import 'core/constants.dart';
 import 'screens/main_menu_screen.dart';
 import 'screens/tutorial_screen.dart';
 
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 import 'data/user_manager.dart';
 import 'data/score_manager.dart';
 import 'data/settings_manager.dart';
@@ -75,21 +78,40 @@ class ArrowEscapeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Arrow Puzzle Escape',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.bgDark,
-        textTheme: GoogleFonts.interTextTheme(
-          ThemeData.dark().textTheme,
-        ),
-        colorScheme: ColorScheme.dark(
-          primary: AppColors.neonCyan,
-          surface: AppColors.bgDark,
-        ),
-      ),
-      home: const _AppStarter(),
+    return ListenableBuilder(
+      listenable: SettingsManager(),
+      builder: (context, _) {
+        return MaterialApp(
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+          debugShowCheckedModeBanner: false,
+          
+          // Localization Setup
+          locale: Locale(SettingsManager().languageCode),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('ko'),
+          ],
+
+          theme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: AppColors.bgDark,
+            textTheme: GoogleFonts.interTextTheme(
+              ThemeData.dark().textTheme,
+            ),
+            colorScheme: ColorScheme.dark(
+              primary: AppColors.neonCyan,
+              surface: AppColors.bgDark,
+            ),
+          ),
+          home: const _AppStarter(),
+        );
+      }
     );
   }
 }

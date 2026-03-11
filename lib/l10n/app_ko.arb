@@ -1,0 +1,54 @@
+{
+  "@@locale": "ko",
+  "appTitle": "애로우 퍼즐 이스케이프",
+
+  "menuPlay": "게임 시작",
+  "menuLevelSelect": "레벨 선택",
+  "menuSettings": "설정",
+
+  "settingsTitle": "설정",
+  "settingsHaptic": "진동 (Haptic)",
+  "settingsSfx": "효과음 (SFX)",
+  "settingsBgm": "배경음악 (BGM)",
+  "settingsDots": "배경 닷 포인트 표시",
+  "settingsLanguage": "언어 (Language)",
+  "settingsClose": "닫기",
+
+  "levelSelectTitle": "레벨 선택",
+  "chapterName": "챕터 {chapterIndex}",
+  "@chapterName": {
+    "placeholders": {
+      "chapterIndex": {
+        "type": "int"
+      }
+    }
+  },
+  "levelLocked": "잠김",
+  "levelNumber": "Lv. {levelId}",
+  "@levelNumber": {
+    "placeholders": {
+      "levelId": {
+        "type": "int"
+      }
+    }
+  },
+
+  "gameHint": "힌트",
+  "gameUndo": "되돌리기",
+  "gameOver": "게임 오버",
+  "gameNoHeartsMsg": "하트를 모두 소진했습니다!",
+  "gameRestart": "다시하기",
+  "gameMenu": "메뉴",
+  "gameClear": "레벨 클리어!",
+  "gameNextLevel": "다음 레벨",
+
+  "tutorialSkip": "건너뛰기",
+  "tutorialNext": "다음",
+  "tutorialStart": "시작하기",
+  "tutorialPage1Title": "화살표 터치",
+  "tutorialPage1Desc": "화살표를 터치해 보드 밖으로 탈출시키세요.\n하지만 조심해야 합니다!",
+  "tutorialPage2Title": "경로 확인",
+  "tutorialPage2Desc": "앞길이 뚫려 있어야만 나갈 수 있습니다.\n다른 화살표에 막히면 하트를 잃습니다.",
+  "tutorialPage3Title": "퍼즐 클리어",
+  "tutorialPage3Desc": "순서를 고민하고, 모든 화살표를 탈출시켜\n레벨을 클리어 하세요!"
+}

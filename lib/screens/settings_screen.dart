@@ -8,6 +8,7 @@ import '../data/score_manager.dart';
 import '../data/user_manager.dart';
 import '../data/auth_service.dart';
 import '../data/cloud_save_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -22,7 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
       appBar: AppBar(
-        title: const Text('SETTINGS', style: TextStyle(letterSpacing: 2)),
+        title: Text(AppLocalizations.of(context)!.settingsTitle, style: const TextStyle(letterSpacing: 2)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -36,31 +37,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildSectionTitle('GAME AND DISPLAY'),
               _buildSwitchCard(
-                title: 'Sound Effects (SFX)',
+                title: AppLocalizations.of(context)!.settingsSfx,
                 icon: Icons.music_note,
                 value: sm.sfxEnabled,
                 onChanged: sm.setSfxEnabled,
               ),
               const SizedBox(height: 12),
               _buildSwitchCard(
-                title: 'Background Music (BGM)',
+                title: AppLocalizations.of(context)!.settingsBgm,
                 icon: Icons.library_music,
                 value: sm.bgmEnabled,
                 onChanged: sm.setBgmEnabled,
               ),
               const SizedBox(height: 12),
               _buildSwitchCard(
-                title: 'Haptic Feedback',
+                title: AppLocalizations.of(context)!.settingsHaptic,
                 icon: Icons.vibration,
                 value: sm.hapticEnabled,
                 onChanged: sm.setHapticEnabled,
               ),
               const SizedBox(height: 12),
               _buildSwitchCard(
-                title: 'Show Background Dots',
+                title: AppLocalizations.of(context)!.settingsDots,
                 icon: Icons.blur_on,
                 value: sm.showGrid,
                 onChanged: sm.setShowGrid,
+              ),
+              const SizedBox(height: 12),
+              
+              // 언어 변경 토글 (English <-> 한국어)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.transparent),
+                ),
+                child: ListTile(
+                  title: Text(AppLocalizations.of(context)!.settingsLanguage, style: const TextStyle(color: AppColors.textPrimary)),
+                  secondary: const Icon(Icons.language, color: AppColors.textMuted),
+                  trailing: SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment<String>(
+                        value: 'en',
+                        label: Text('EN'),
+                      ),
+                      ButtonSegment<String>(
+                        value: 'ko',
+                        label: Text('KO'),
+                      ),
+                    ],
+                    selected: {sm.languageCode},
+                    onSelectionChanged: (Set<String> newSelection) {
+                      sm.setLanguageCode(newSelection.first);
+                    },
+                    style: SegmentedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      selectedForegroundColor: Colors.white,
+                      selectedBackgroundColor: AppColors.neonCyan.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ),
               ),
               
               const SizedBox(height: 32),

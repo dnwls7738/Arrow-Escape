@@ -5,6 +5,7 @@ import '../data/level_service.dart';
 import '../data/score_manager.dart';
 import '../models/level_data.dart';
 import 'game_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({super.key});
@@ -31,7 +32,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            'SELECT LEVEL',
+            AppLocalizations.of(context)!.levelSelectTitle,
             style: GoogleFonts.outfit(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -48,7 +49,7 @@ class _LevelSelectScreenState extends State<LevelSelectScreen> {
             unselectedLabelColor: AppColors.textMuted,
             tabs: List.generate(
               chapters.length,
-              (index) => Tab(text: 'CHAPTER ${index + 1}'),
+              (index) => Tab(text: AppLocalizations.of(context)!.chapterName(index + 1)),
             ),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../core/constants.dart';
 import 'level_select_screen.dart';
 import 'settings_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({super.key});
@@ -78,7 +79,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 _buildLogo(),
                 const SizedBox(height: 12),
                 Text(
-                  'PUZZLE ESCAPE',
+                  AppLocalizations.of(context)!.appTitle,
                   style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w300,
@@ -89,7 +90,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 const Spacer(flex: 2),
                 // 메뉴 버튼
                 _buildMenuButton(
-                  label: 'PLAY',
+                  label: AppLocalizations.of(context)!.menuPlay,
                   icon: Icons.play_arrow_rounded,
                   color: AppColors.neonCyan,
                   onTap: () {
@@ -108,7 +109,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
                 ),
                 const SizedBox(height: 16),
                 _buildMenuButton(
-                  label: 'SETTINGS',
+                  label: AppLocalizations.of(context)!.menuSettings,
                   icon: Icons.settings_rounded,
                   color: AppColors.textSecondary,
                   onTap: () {
