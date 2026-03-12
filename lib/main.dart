@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/logger.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'core/constants.dart';
 import 'core/app_router.dart';
 
@@ -25,6 +26,9 @@ void main() async {
   
   // Firebase 초기화
   await Firebase.initializeApp();
+  
+  // Google Sign-In 초기화 (v7 필수)
+  await GoogleSignIn.instance.initialize();
   
   // 로그인 안 되어 있으면 자동 익명 로그인 (게스트 모드)
   if (AuthService().currentUser == null) {

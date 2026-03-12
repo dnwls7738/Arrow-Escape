@@ -5,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 /// 인증 서비스 — 추후 Apple Sign-In 추가가 쉽도록 추상화
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   /// 현재 로그인한 유저 (없으면 null)
   User? get currentUser => _auth.currentUser;
@@ -19,14 +18,12 @@ class AuthService {
   /// 구글 로그인 (익명 계정이면 연결, 아니면 새 로그인)
   Future<dynamic> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return '로그인이 취소되었습니다.';
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance.authenticate();
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -43,6 +40,9 @@ class AuthService {
       }
 
       return await _auth.signInWithCredential(credential);
+    } on GoogleSignInException catch (e) {
+      Logger.log('Google Sign-In Exception: ${e.code}');
+      return '로그인이 취소되었거나 실패했습니다.';
     } catch (e) {
       Logger.log('Google Sign-In Error: $e');
       if (e is FirebaseAuthException) {
@@ -64,7 +64,7 @@ class AuthService {
 
   /// 로그아웃 후 자동 익명 재로그인
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
+    await GoogleSignIn.instance.signOut();
     await _auth.signOut();
     await signInAnonymously();
   }
@@ -72,12 +72,10 @@ class AuthService {
   /// 구글 재인증 (계정 삭제 전 필수)
   Future<bool> reauthenticateWithGoogle() async {
     try {
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return false;
+      final googleUser = await GoogleSignIn.instance.authenticate();
 
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -96,7 +94,7 @@ class AuthService {
       if (user == null) return '로그인 상태가 아닙니다.';
 
       await user.delete();
-      await _googleSignIn.signOut();
+      await GoogleSignIn.instance.signOut();
       // 삭제 후 게스트로 전환
       await signInAnonymously();
       return null; // 성공
