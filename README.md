@@ -1,5 +1,5 @@
 
-### *Antigravity를 이용해 만들어졌습니다.*
+## Antigravity를 이용해 만들어졌습니다.
 
 ---
 
